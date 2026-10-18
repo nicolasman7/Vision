@@ -34,3 +34,8 @@ def landmarks():
     Name format: "x35_hash_lo" = the x=35 line (the left 25-yard line) on the low hash.
     """
     return {f"x{x:g}_{row}": (x, y) for x in YARD_LINES for row, y in ROWS.items()}
+
+# Hash (inbound line) distance from each sideline by level. NFL as above. NCAA Rule 1-2-2:
+# 60 ft = 20 yd. NFHS (US high school) Rule 1-2-3: 53 ft 4 in = 17.78 yd, i.e. the hashes
+# split the field into thirds. Unsure: rule article numbers quoted from memory.
+HASH_FROM_SIDELINE_BY_LEVEL = {"nfl": HASH_FROM_SIDELINE, "ncaa": 20.0, "hs": 160 / 9}

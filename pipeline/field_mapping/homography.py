@@ -44,6 +44,8 @@ def fit(image_pts, field_pts):
         return None
     # OpenCV works in float32 internally (~1e-6 yd floor), so refit the inliers in float64.
     keep = inliers.ravel().astype(bool)
+    if keep.sum() < 4 or _collinear(fld[keep]):
+        return None  # RANSAC kept too few landmarks to trust
     H = _dlt(img[keep], fld[keep])
     rms = float(np.sqrt(np.mean(np.sum((to_field(H, img) - fld) ** 2, axis=1))))
     return H, rms
@@ -99,3 +101,66 @@ def camera_homography(position_m, look_at_m, hfov_deg, image_size):
     K = np.array([[f, 0, w / 2], [0, f, h / 2], [0, 0, 1]])
     yd_to_m = np.diag([YARD_M, YARD_M, 1.0])
     return K @ np.column_stack([R[:, 0], R[:, 1], t]) @ yd_to_m
+
+
+# A camera with square pixels and a centred principal point can only produce some
+# homographies (see camera_mismatch). Real lenses and zoom add a little; a wrong row label
+# (e.g. a crowd row taken for the far hash) stretches the field and adds a lot.
+MISMATCH_MAX = 0.25
+RMS_MAX = 1.0  # yd; above this the landmarks disagree with each other
+
+
+def camera_mismatch(H, image_size):
+    """How far image->field H is from any pinhole camera with unknown focal length f.
+
+    Field->image is K [r1 r2 t] with r1, r2 orthonormal. After removing the principal
+    point, columns h1, h2 give r1 ~ (h1x/f, h1y/f, h1z), r2 likewise. Solve f from either
+    "r1 . r2 = 0" or "|r1| = |r2|" (one can be degenerate, e.g. a centred end-zone camera),
+    then score the other: 0 = a real camera could take this picture.
+    """
+    w, h = image_size
+    G = np.array([[1, 0, -w / 2], [0, 1, -h / 2], [0, 0, 1]]) @ np.linalg.inv(H)
+    G = G / np.linalg.norm(G)
+    (ax, bx), (ay, by), (az, bz) = G[:, 0:2]
+    tries = []
+    if abs(az * bz) > 1e-12:
+        tries.append(-(ax * bx + ay * by) / (az * bz))
+    if abs(bz**2 - az**2) > 1e-12:
+        tries.append((ax**2 + ay**2 - bx**2 - by**2) / (bz**2 - az**2))
+    best = 1.0
+    for f2 in tries:
+        if f2 > 0:
+            r1, r2 = np.array([ax, ay, az * np.sqrt(f2)]), np.array([bx, by, bz * np.sqrt(f2)])
+            n1, n2 = np.linalg.norm(r1), np.linalg.norm(r2)
+            best = min(best, max(abs(r1 @ r2) / (n1 * n2), abs(n1 - n2) / (n1 + n2)))
+    return float(best)
+
+
+def fit_frame(frame, level="hs"):
+    """Real frame -> (H, rms_yards, reason). H is None unless reason == "ok".
+
+    x in the result is RELATIVE (leftmost found yard line = 0; true offset unknown, a
+    multiple of 5 yd). Tries each candidate row labelling from lines.py and keeps the one
+    with the most rows, then the most physical camera. See lines.py for the assumptions.
+    """
+    from pipeline.field_mapping.lines import find_landmarks
+
+    cands, reason = find_landmarks(frame, level)
+    if not cands:
+        return None, None, reason
+    best, reason = None, "degenerate landmarks"
+    for img, fld in cands:
+        result = fit(img, fld)
+        if result is None:
+            continue
+        H, rms = result
+        mis = camera_mismatch(H, frame.shape[1::-1])
+        if rms > RMS_MAX or mis > MISMATCH_MAX:
+            reason = "implausible camera" if rms <= RMS_MAX else "landmarks disagree"
+            continue
+        key = (-len(set(fld[:, 1])), mis)
+        if best is None or key < best[0]:
+            best = (key, H, rms)
+    if best is None:
+        return None, None, reason
+    return best[1], best[2], "ok"
