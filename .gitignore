@@ -1,0 +1,62 @@
+# --- Secrets ---
+.env
+.env.*
+
+# --- Datasets (never commit; NFL footage is copyrighted) ---
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# --- Videos and images anywhere ---
+*.mp4
+*.mov
+*.m4v
+*.avi
+*.mkv
+*.webm
+*.ts
+
+# --- Model weights and exports ---
+models/*
+!models/README.md
+coreml/*
+!coreml/README.md
+*.pt
+*.pth
+*.onnx
+*.ckpt
+*.safetensors
+*.h5
+*.tflite
+*.mlmodel
+*.mlpackage/
+*.mlmodelc/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+runs/
+wandb/
+
+# --- Xcode / Swift ---
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+.swiftpm/
+.build/
+Pods/
+
+# --- OS / editors ---
+.DS_Store
+.vscode/
+.idea/
