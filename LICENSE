@@ -1,0 +1,11 @@
+Copyright (c) 2026 Nicolas Mansour. All rights reserved.
+
+This repository is public so its source can be read and reviewed (for example, as a
+portfolio). No license is granted to copy, modify, distribute, or use this code or its
+documentation, in whole or in part, without written permission from the author.
+
+Third-party components keep their own licenses and are not covered by this notice:
+- Python dependencies listed in pyproject.toml (e.g. Ultralytics YOLO, AGPL-3.0;
+  scikit-learn, BSD-3-Clause; OpenCV, Apache-2.0; coremltools, BSD-3-Clause).
+- Data from nflverse and video clips listed in docs/clips_manifest.json are NOT included
+  in this repository; they are governed by their sources' licenses.

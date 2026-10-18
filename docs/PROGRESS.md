@@ -22,9 +22,14 @@ gantt
     Run/pass + direction models :done, models, 2026-10-17, 1d
     Multi-season experiments    :done, exps, 2026-10-17, 1d
     Direction/depth bucket study :done, buckets, 2026-10-17, 1d
+    Predictor v3 (dropout + calibration) :done, v3, 2026-10-18, 1d
+    Core ML export + parity :done, coreml, 2026-10-18, 1d
 
     section Vision
     Field mapping v0 (synthetic) :done, fmap, 2026-10-17, 1d
+    Licensed clips :done, clips, 2026-10-18, 1d
+    YOLO + ByteTrack baseline :done, yolo, 2026-10-18, 1d
+    Field lines + top-down demo :done, lines, 2026-10-18, 1d
 
     section Research
     Detection data + situation source docs :done, research, 2026-10-17, 1d
@@ -34,6 +39,97 @@ gantt
     Round 2 agent team (Strategist + 6) :done, team2, 2026-10-17, 1d
     Agent playbook, logs, GitHub repo :done, repo, 2026-10-18, 1d
 ```
+
+---
+
+## 2026-10-18: App-ready predictor, Core ML export, first real-footage vision
+
+### What was done
+1. **Predictor v3**: one model that handles any mix of missing inputs, plus two new heads: direction (runs only) and depth (throws only). It was trained on 2016–2023 (273,298 plays), calibrated on 2024 (34,788), and tested on 2025 (34,413). Results are in `models/metrics_v3.json`.
+2. **Core ML export**: all three heads now exist as Core ML models in `coreml/`, and on our test plays they give the same answers as the Python models.
+3. **Three openly licensed game clips**: high-school games from the Internet Archive. Two are sideline-elevated shots (CC0), and one is a high, wide shot (Public Domain Mark; this is the 480p one). There's no NFL footage, and no video is committed. Details are in `docs/research/clips.md` and `docs/clips_manifest.json`.
+4. **First vision on real footage**: YOLO detection plus ByteTrack tracking, field-line detection, and a demo that draws the players on a top-down field.
+
+**One model, every input pattern** (2025 test):
+
+| Inputs available | Accuracy |
+|---|---|
+| Everything | 76.2% |
+| No situation (camera only) | 74.9% |
+| Down & distance + camera | 75.7% |
+| Situation only (vision failed) | 70.7% |
+| Nothing | 60.4% |
+
+Each row is within about 0.25 points of a separate model trained only for that pattern. Training with dropout costs 0.07 points on clean data (76.27% → 76.20%).
+
+**The heads** (2025):
+
+| Head | Model | Base rate |
+|---|---|---|
+| Direction, runs (left/middle/right) | 40.2% | 36.4% |
+| Depth, throws (≤0 / 1–9 / 10+ air yards) | 48.6% | 45.7% |
+
+**Vision on the clips:**
+- **Spotter (YOLO26s + ByteTrack, 1280 px input, on the Mac's GPU):**
+  - Runs at 24–27 frames per second and finds 23–45 people per frame.
+  - About half of those people are on the sideline, not in the game.
+  - It finds the ball in only 2–13% of frames.
+  - Player IDs break apart in pile-ups and when the camera pans.
+- **Field Surveyor:**
+  - On the wincam clip, 8% of frames could be mapped to the field (median error at the landmarks 0.38 yd).
+  - On the Belmont clips, 0% could be mapped (see concept 6).
+  - In a synthetic test, 95% of points land within 0.17 yd.
+
+### Why it was needed
+In the app, inputs will often be missing: no scorebug, a formation vision couldn't read, a user who skipped the down. Before v3, every missing pattern would have needed its own model. Core ML is the format the iPhone runs. Real clips are the first test of the vision half against something other than synthetic cameras.
+
+### How it fits
+```
+clip → YOLO (people, ball) → ByteTrack (IDs) → field lines → homography → [formation: not built] → predictor v3 (Core ML)
+```
+`coreml/predictor_schema.json` is the contract between the halves. It lists the 28 inputs in order, and for each one whether it comes from the **user** (down, distance, score…), is **derived** (game clock from quarter clock), or comes from **vision** (formation family, personnel, box count, hash). Unknown inputs must be NaN, never 0.
+
+### Concepts worth understanding
+
+**1. Input dropout: train on the gaps you'll see in use.**
+During training, inputs were randomly blanked: the formation on 15% of rows, the scoreboard on 40%, the whole situation on 25%, all vision inputs on 10%. The trees learn what to do when a value is missing, so one model covers every row of the table above. Example: on a Belmont clip with no down and distance on the scorebug, the app sends NaN, and the model falls back to what the formation says.
+
+**2. Wrong vs blank.**
+Corrupt the formation on 30% of 2025 plays:
+- **Blank** (vision says "unknown"): accuracy drops 76.2% → 75.4%, a 0.8-point loss.
+- **Misread** (vision guesses wrong): it drops to 71.8%, a 4.4-point loss.
+
+A wrong input costs more than five times as much as an honest blank. So the vision stages should report "unknown" when they're unsure.
+
+**3. Platt vs temperature calibration.**
+- **Platt scaling** fits two numbers, a slope and an offset, on the model's log-odds, using held-out data (here, 2024). It was fit for run/pass, but in a backtest it barely changed anything (log loss 0.4665 → 0.4663), and on 2025 it made results worse. Run/pass ships uncalibrated. Its bins are already within about 1 point (for example, plays at about 75% confidence were right 74.3% of the time).
+- **Temperature scaling** divides all the scores by one number, T, before turning them into probabilities. T > 1 softens overconfident guesses. Direction got T = 1.24, which lowered its log loss from 1.076 to 1.073. Depth got T = 1.00, which means it was already calibrated.
+
+**4. Conditional heads.**
+Direction is only predicted for runs, and depth only for throws. The app shows "if it's a run: probably left" next to the run/pass probability. Each head answers a question that only makes sense in one branch, the same way you'd only decode a payload after the header says what type it is.
+
+**5. Why tree models export exactly.**
+A boosted-tree model is just a big network of comparators: "is `ydstogo` ≤ 6.5? go left, else right", and at the end, add up the leaf values. Our own converter (`pipeline/export/hgb_to_coreml.py`) copies every threshold and leaf into Core ML's tree format. We needed it because the official sklearn converter is disabled for sklearn 1.9. Missing values needed care. Using `LessThanEqual` with `missing_value_tracks_true_child` sends a NaN down the same branch sklearn learned for it. Result:
+- On 2,000 plays from 2025, the largest difference from Python is 3.3e-16, which is floating-point rounding. The top pick (argmax) matches 100% of the time.
+- File sizes: run/pass 124 KB, direction and depth 394 KB each.
+- About 0.02 ms per prediction.
+
+**6. Detection vs tracking.**
+Detection answers "where are the people in **this** frame?" Tracking answers "is box 7 now the same player as box 7 a moment ago?" ByteTrack matches boxes between frames by predicted motion and overlap. In a pile-up, boxes merge and split, and the tracker can hand a player a new ID. That's an **ID switch**, or fragmentation. It's harmless for one snapshot, but it matters if you follow a player through a play.
+
+**7. Hough lines and vanishing points.**
+The Hough transform finds straight lines by letting every edge pixel vote for every line it could lie on. The lines with the most votes win. Yard lines are parallel on the field, but in the image they all point toward one **vanishing point**, like rails meeting at the horizon. The code relies on that geometry: steep lines are treated as yard lines, and flat rows as sidelines and hashes. On the Belmont clips the camera is so oblique that this split breaks down, so 0% of frames were mappable.
+
+**8. Relative x.**
+A yard line looks the same as every other yard line. Without reading the painted numbers, the map knows the players' spacing but not their absolute position. Every x might be off by an unknown multiple of 5 yd. Formation shape survives this. "At the 35" does not.
+
+### Honest limitations
+- **Core ML is tested on macOS only**, not yet on an iPhone.
+- **The top-down demo isn't a measurement.** It maps frame 103 with a homography, then carries that map to later frames by following how the grass moves. Drift was never measured. Treat it as a picture, not as data.
+- **Mappable frames are rare**: 8% on one clip and 0% on the other two. Distance along the field is only relative.
+- **Detection doesn't separate players from sideline people, and it rarely sees the ball.**
+- **The clips are high school**, not NFL, and the wincam's public-domain mark was applied by the uploader, not the producer.
+- **Direction and depth beat their base rates by only about 3–4 points.**
 
 ---
 

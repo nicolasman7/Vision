@@ -100,7 +100,7 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 
 ## Current state
 
-_As of 2026-10-18 (session 5)_
+_As of 2026-10-18 (session 6, round 3)_
 
 - Git: private GitHub repo `nicolasman7/Vision` (remote `origin`, branch `main`). History rebuilt as backdated commits, one per agent per round (setup → env → round 1 → round 2), then this session's commit. Only push when the user says so in that message.
 - Logs: `report.py` appends every status update to `tools/agent-hq/logs/activity-YYYY-MM-DD.jsonl` (committed); the lead writes `tools/agent-hq/logs/rounds/round-N.md` after each round (rounds 1–2 were written after the fact).
@@ -111,6 +111,26 @@ _As of 2026-10-18 (session 5)_
 - Agent HQ: see "Agent team". Bench: wrangler, modeler, teacher, gamedev, strategist, surveyor, scout, bucketeer.
 
 ## Session log
+
+### 2026-10-18: Round 3 (predictor v3, Core ML, first vision on real clips)
+- **Done:**
+  - Predictor v3 bundle (`pipeline/prediction/predictor.py`, `scripts/train_predictor.py`): 3 heads, input dropout, one-hot inputs; run/pass uses identity calibration. Results: 76.2% on 2025 with full inputs, 74.9% with no situation.
+  - Core ML export (`pipeline/export/hgb_to_coreml.py`, `scripts/export_coreml.py`): parity ≤ 3.3e-16; schema in `coreml/predictor_schema.json`.
+  - Licensed clips (`scripts/fetch_clips.py`, `docs/clips_manifest.json`).
+  - YOLO26s + ByteTrack (`pipeline/tracking/track.py`, `scripts/run_tracking.py`).
+  - Field lines from pixels + top-down demo (`pipeline/field_mapping/lines.py`, `scripts/detect_field_lines.py`, `scripts/demo_topdown.py`).
+  - Repo made public: all-rights-reserved LICENSE plus a recruiter README.
+- **Changed:**
+  - opencv-python (non-headless) replaced the headless build.
+  - Added torch, ultralytics, coremltools and lap.
+  - `field.py` gained high-school hash positions.
+- **Broken/unresolved:**
+  - Field mapping is mappable on 8% of high-wide frames and 0% of oblique sideline frames.
+  - x is relative (an unknown multiple of 5 yd).
+  - Sideline people are detected as players.
+  - The ball is rarely detected.
+  - Core ML is tested on macOS only.
+- **Left off:** next candidates are near-sideline/oblique line detection, yard-number OCR for absolute x, filtering people off the field, and a Swift app shell.
 
 ### 2026-10-18: Playbook, logs, GitHub repo
 - **Done:** Wrote `AGENT_TEAM.md` (portable playbook: themed dashboard first, status protocol with full `report.py`, dashboard spec, round workflow, bench, constraints, brief template, logs). `report.py` now also appends to a daily activity log. Wrote round logs for rounds 1–2. Rebuilt git history as 14 backdated commits (per agent, real file timestamps; early CLAUDE.md/PROGRESS.md versions reconstructed from the session, uv.lock for the first env commit regenerated with `--exclude-newer`), added this session's commit, created the private repo `nicolasman7/Vision`, pushed `main` (user asked).

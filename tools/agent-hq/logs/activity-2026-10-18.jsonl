@@ -15,3 +15,72 @@
 {"time": "2026-10-18T00:26:58-0400", "id": "strategist", "name": "Strategist", "role": "Strategy", "state": "done", "task": "Plan ready: 6 agents", "updated": 1792297618.270488}
 {"time": "2026-10-18T00:26:58-0400", "id": "strategist", "name": "Strategist", "role": "Strategy", "state": "idle", "task": "On the bench: plan delivered", "updated": 1792297618.29596}
 {"time": "2026-10-18T00:29:31-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 3 phase 0: tests + safety commit", "updated": 1792297771.143768}
+{"time": "2026-10-18T00:29:32-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Getting briefed", "updated": 1792297772.924312}
+{"time": "2026-10-18T00:29:32-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "idle", "task": "Waiting for 3 clips from Film Scout", "updated": 1792297772.948684}
+{"time": "2026-10-18T00:29:32-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "idle", "task": "Waiting for 3 clips from Film Scout", "updated": 1792297772.9722931}
+{"time": "2026-10-18T00:29:32-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Getting briefed: predictor v3", "updated": 1792297772.995954}
+{"time": "2026-10-18T00:29:33-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Getting briefed: licensed clips", "updated": 1792297773.020876}
+{"time": "2026-10-18T00:29:33-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "Waiting for round 3 results", "updated": 1792297773.044321}
+{"time": "2026-10-18T00:29:33-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Phase 1: Modeler, Packer, Film Scout", "updated": 1792297773.067538}
+{"time": "2026-10-18T00:30:26-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Round 3: reading decisions + research", "updated": 1792297826.482367}
+{"time": "2026-10-18T00:30:26-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Reading repo and HGB internals", "updated": 1792297826.9618719}
+{"time": "2026-10-18T00:30:27-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Reading CLAUDE.md footage decision", "updated": 1792297827.3900821}
+{"time": "2026-10-18T00:30:49-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Searching Commons for more football video", "updated": 1792297849.408556}
+{"time": "2026-10-18T00:30:53-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Spike: does Core ML route NaN via missing flag?", "updated": 1792297853.664751}
+{"time": "2026-10-18T00:30:59-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Searching Commons for more football video", "updated": 1792297859.27315}
+{"time": "2026-10-18T00:31:18-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Peeking frames to judge camera angles", "updated": 1792297878.799767}
+{"time": "2026-10-18T00:31:32-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "NaN spike OK (LTE honors flag); writing converter", "updated": 1792297892.892752}
+{"time": "2026-10-18T00:32:06-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Running parity tests on synthetic data", "updated": 1792297926.303242}
+{"time": "2026-10-18T00:32:21-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Searching Internet Archive for other angles", "updated": 1792297941.9741561}
+{"time": "2026-10-18T00:32:29-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Adding onehot, dropout, v3 heads to model.py", "updated": 1792297949.108716}
+{"time": "2026-10-18T00:32:30-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Parity 4e-16; running full test suite", "updated": 1792297950.891374}
+{"time": "2026-10-18T00:32:37-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "done", "task": "HGB->Core ML converter done, parity 4e-16", "updated": 1792297957.250061}
+{"time": "2026-10-18T00:32:37-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "idle", "task": "On the bench: waiting for Modeler's bundle", "updated": 1792297957.275648}
+{"time": "2026-10-18T00:32:41-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Peeking Belmont HS and CMAP game angles", "updated": 1792297961.9962199}
+{"time": "2026-10-18T00:34:08-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Training v3 bundle (3 heads, dropout)", "updated": 1792298048.07113}
+{"time": "2026-10-18T00:34:33-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Peeking Commons clips (rate-limited, slow)", "updated": 1792298073.635027}
+{"time": "2026-10-18T00:35:00-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Commons rate-limited 10 min; mining Archive", "updated": 1792298100.790074}
+{"time": "2026-10-18T00:35:13-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Rerun: patterns, wrong-vs-blank, backtest", "updated": 1792298113.179689}
+{"time": "2026-10-18T00:36:02-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Writing predictor tests", "updated": 1792298162.126456}
+{"time": "2026-10-18T00:36:07-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Finding snap moments in WinCam wide game", "updated": 1792298167.384875}
+{"time": "2026-10-18T00:36:37-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "done", "task": "v3 bundle: 76.2% full, 74.9% no situation", "updated": 1792298197.551969}
+{"time": "2026-10-18T00:36:37-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "idle", "task": "On the bench: ready for prediction-model jobs", "updated": 1792298197.5754392}
+{"time": "2026-10-18T00:37:02-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "Cutting first 3 clips (Archive)", "updated": 1792298222.758231}
+{"time": "2026-10-18T00:37:36-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Reviewed Modeler; waiting on calib fix + clips", "updated": 1792298256.739382}
+{"time": "2026-10-18T00:37:42-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Setting run/pass calibration to identity", "updated": 1792298262.255408}
+{"time": "2026-10-18T00:38:43-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "done", "task": "Run/pass calib set to identity; bundle rebuilt", "updated": 1792298323.107469}
+{"time": "2026-10-18T00:38:43-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "idle", "task": "On the bench: ready for prediction-model jobs", "updated": 1792298323.132}
+{"time": "2026-10-18T00:39:07-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Reading Modeler's predictor bundle format", "updated": 1792298347.665518}
+{"time": "2026-10-18T00:39:10-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "working", "task": "3 clips ready, fetching more", "updated": 1792298350.869951}
+{"time": "2026-10-18T00:39:26-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Writing scripts/export_coreml.py", "updated": 1792298366.4959402}
+{"time": "2026-10-18T00:39:48-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Exporting 3 heads + parity on 2025 plays", "updated": 1792298388.2850938}
+{"time": "2026-10-18T00:39:55-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Getting briefed: YOLO + ByteTrack", "updated": 1792298395.680243}
+{"time": "2026-10-18T00:39:55-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Getting briefed: field lines from pixels", "updated": 1792298395.708386}
+{"time": "2026-10-18T00:39:55-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Phase 2: Spotter, Surveyor, Packer", "updated": 1792298395.734258}
+{"time": "2026-10-18T00:39:59-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Reading CLAUDE.md and clips manifest", "updated": 1792298399.393808}
+{"time": "2026-10-18T00:39:59-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Round 3: reading CLAUDE.md and clips", "updated": 1792298399.586412}
+{"time": "2026-10-18T00:40:16-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "working", "task": "Parity PASS; checking schema, git, pytest", "updated": 1792298416.354839}
+{"time": "2026-10-18T00:40:25-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "done", "task": "Exported 3 heads; parity 3e-16, all PASS", "updated": 1792298425.119761}
+{"time": "2026-10-18T00:40:25-0400", "id": "packer", "name": "Core ML Packer", "role": "ML", "state": "idle", "task": "On the bench: ready for Core ML export jobs", "updated": 1792298425.146411}
+{"time": "2026-10-18T00:40:28-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Writing pipeline/tracking/track.py", "updated": 1792298428.350153}
+{"time": "2026-10-18T00:41:16-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Prototyping grass + paint masks", "updated": 1792298476.1421409}
+{"time": "2026-10-18T01:54:07-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Tracking clips: yolo26s @1280 on MPS", "updated": 1792302847.6340978}
+{"time": "2026-10-18T01:54:34-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "done", "task": "3 clips + manifest + script + doc", "updated": 1792302874.219831}
+{"time": "2026-10-18T01:54:34-0400", "id": "scout", "name": "Film Scout", "role": "Docs", "state": "idle", "task": "On the bench: ready for research and sourcing jobs", "updated": 1792302874.2459981}
+{"time": "2026-10-18T01:54:48-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Writing lines.py detector", "updated": 1792302888.44108}
+{"time": "2026-10-18T01:56:17-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Reviewing annotated frames for failures", "updated": 1792302977.062881}
+{"time": "2026-10-18T01:56:27-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "idle", "task": "On the bench: ready for detection/tracking jobs", "updated": 1792302987.1792588}
+{"time": "2026-10-18T01:57:17-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "First run on real clips", "updated": 1792303037.3903701}
+{"time": "2026-10-18T02:00:23-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Gating fits by camera plausibility", "updated": 1792303223.304963}
+{"time": "2026-10-18T02:02:17-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Synthetic-frame test for lines.py", "updated": 1792303337.8131788}
+{"time": "2026-10-18T02:02:52-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "working", "task": "Step 2: top-down demo from Spotter tracks", "updated": 1792303372.0108001}
+{"time": "2026-10-18T02:04:35-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "done", "task": "Field lines + top-down demo done (low map rate)", "updated": 1792303475.9902542}
+{"time": "2026-10-18T02:04:36-0400", "id": "surveyor", "name": "Field Surveyor", "role": "Vision", "state": "idle", "task": "On the bench: ready for vision jobs", "updated": 1792303476.0126772}
+{"time": "2026-10-18T02:05:16-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Getting briefed: round 3 + README", "updated": 1792303516.251919}
+{"time": "2026-10-18T02:05:16-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 3 wrap-up: license, logs, git", "updated": 1792303516.276727}
+{"time": "2026-10-18T02:05:19-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Round 3: reading sources", "updated": 1792303519.548465}
+{"time": "2026-10-18T02:05:33-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Round 3: writing PROGRESS entry", "updated": 1792303533.8886158}
+{"time": "2026-10-18T02:06:20-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Round 3: rewriting README", "updated": 1792303580.9255118}
+{"time": "2026-10-18T02:06:51-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "done", "task": "Round 3 docs done", "updated": 1792303611.019246}
+{"time": "2026-10-18T02:06:51-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "On the bench: ready for docs jobs", "updated": 1792303611.042559}
+{"time": "2026-10-18T02:07:21-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: round 3 done, repo public", "updated": 1792303641.721966}
