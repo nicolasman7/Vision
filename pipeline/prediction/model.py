@@ -163,3 +163,156 @@ def shift_count(X, col, frac, seed=0):
     pick = rng.random(len(X)) < frac
     X.loc[pick, col] = (X.loc[pick, col] + rng.choice([-1, 1], size=pick.sum())).clip(lower=0)
     return X
+
+
+# --- v3: one app-ready predictor (run/pass, run direction, throw depth) that copes with missing inputs.
+
+# The app's inputs. Left out on purpose: shotgun and ftn_qb_location (same information as formation_family,
+# so the app would have to fill the same thing twice), n_offense/n_defense (always 11), and the other box columns.
+# Box: ftn_box is the one box count, because it is a single definition (FTN charting) from 2022 to today.
+# defenders_in_box (NGS, <=2022) agrees with FTN on only 59% of 2022 plays and box_part23 starts in 2023, so
+# mixing them would make "box" mean different things in different rows. Before 2022 ftn_box is simply NaN.
+V3_VISION = ["no_huddle", "formation_family", "is_empty", "ftn_n_offense_backfield"] + PERSONNEL \
+    + ["ftn_box", "ftn_starting_hash"]
+V3_INPUTS = SITUATION + V3_VISION
+
+# Where the app gets each input. "user" = typed in the situation panel (or a scorebug reader later),
+# "vision" = read from the video, "derived" = computed from other inputs (see predictor.derive).
+FEATURE_SOURCES = {c: "user" for c in SITUATION} | {c: "vision" for c in V3_VISION} | {
+    "goal_to_go": "derived", "half_seconds_remaining": "derived", "game_seconds_remaining": "derived"}
+FEATURE_SOURCES = {c: FEATURE_SOURCES[c] for c in V3_INPUTS}  # keep the input order
+
+# Input blocks that tend to be missing together. goal_to_go needs both ydstogo and yardline_100, so it
+# sits in both blocks and is blanked when either one is.
+BLOCKS = {
+    "down_distance": ["down", "ydstogo", "goal_to_go"],
+    "field_position": ["yardline_100", "goal_to_go"],
+    "scoreboard": ["score_differential", "qtr", "quarter_seconds_remaining", "half_seconds_remaining",
+                   "game_seconds_remaining", "posteam_timeouts_remaining", "defteam_timeouts_remaining"],
+    # no_huddle rides with formation: both come from the same pre-snap look at the offense.
+    "formation": ["formation_family", "is_empty", "ftn_n_offense_backfield", "no_huddle"],
+    "personnel": PERSONNEL,
+    "box": ["ftn_box"],
+    "hash": ["ftn_starting_hash"],
+}
+# Chance that each block is blanked on a dropout row, picked to mirror how the app will be used:
+# down & distance is the first thing the user enters (rarely missing); the scoreboard needs typing or a
+# scorebug reader (often missing); personnel and box need a clear wide view (missing a fair amount);
+# formation is the vision stage's main output (usually readable).
+DROPOUT = {"down_distance": 0.15, "field_position": 0.3, "scoreboard": 0.4,
+           "formation": 0.15, "personnel": 0.3, "box": 0.3, "hash": 0.2}
+# On top of that, whole halves go missing together: the user hasn't entered anything yet (no situation),
+# or the camera view was useless (no vision). Independent blocks alone would almost never produce these.
+GROUP_DROPOUT = {"situation": 0.25, "vision": 0.1}
+GROUPS = {"situation": ["down_distance", "field_position", "scoreboard"],
+          "vision": ["formation", "personnel", "box", "hash"]}
+
+HEADS = {"run_pass": [0, 1], "direction": ["left", "middle", "right"], "depth": ["<=0", "1-9", "10+"]}
+
+
+def onehot(df, cols):
+    """Like features(), but categories become one float column per value (`col=value`) instead of a
+    pandas categorical: Core ML can't export HGB's categorical splits. A missing (or unknown) value
+    is NaN in every one of its columns, so the trees learn a "missing" branch rather than reading 0 as "no"."""
+    out = {}
+    for c in cols:
+        if c in CATEGORIES:
+            known = df[c].isin(CATEGORIES[c])
+            for v in CATEGORIES[c]:
+                out[f"{c}={v}"] = df[c].isin([v]).astype("float64").where(known)
+        else:
+            out[c] = df[c].astype("float64")
+    return pd.DataFrame(out, index=df.index)
+
+
+def apply_dropout(df, seed=0):
+    """Copy of df with whole input blocks blanked per row (rates in DROPOUT and GROUP_DROPOUT)."""
+    rng = np.random.default_rng(seed)
+    df = df.copy()
+    group_off = {g: rng.random(len(df)) < p for g, p in GROUP_DROPOUT.items()}
+    for block, cols in BLOCKS.items():
+        off = rng.random(len(df)) < DROPOUT[block]
+        for g, blocks in GROUPS.items():
+            if block in blocks:
+                off |= group_off[g]
+        df.loc[off, cols] = np.nan
+    return df
+
+
+def head_rows(df, head):
+    """Rows a head learns from, and their labels as class indices into HEADS[head]."""
+    if head == "run_pass":
+        return df, df["is_pass"].to_numpy()
+    if head == "direction":  # runs with a known direction
+        runs = df[(df["is_pass"] == 0) & df["direction"].notna()]
+        return runs, runs["direction"].map({d: i for i, d in enumerate(HEADS["direction"])}).to_numpy()
+    # depth: throws only. Sacks and scrambles have no air_yards, so they drop out here.
+    throws = df[(df["is_pass"] == 1) & df["air_yards"].notna()]
+    ay = throws["air_yards"].to_numpy()
+    return throws, np.select([ay <= 0, ay < 10], [0, 1], 2)
+
+
+def fit_platt(raw, y):
+    """Fit p = sigmoid(a*raw + b) by minimising log loss. Two numbers, so the exporter can fold them into the trees."""
+    from scipy.optimize import minimize
+
+    def nll(ab):
+        z = ab[0] * raw + ab[1]
+        return np.mean(np.logaddexp(0, z) - y * z)
+    a, b = minimize(nll, [1.0, 0.0]).x
+    return {"a": float(a), "b": float(b)}
+
+
+def fit_temperature(raw, y):
+    """Fit p = softmax(raw / T). T > 1 softens overconfident probabilities, T < 1 sharpens them."""
+    from scipy.optimize import minimize_scalar
+    from scipy.special import logsumexp
+
+    def nll(T):
+        z = raw / T
+        return np.mean(logsumexp(z, axis=1) - z[np.arange(len(y)), y])
+    return {"T": float(minimize_scalar(nll, bounds=(0.05, 20), method="bounded").x)}
+
+
+def calibration_table_multiclass(y, proba, edges=(0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1.0)):
+    """calibration_table for 3 classes: bin by the top probability, check how often the top class is right."""
+    proba, y = np.asarray(proba), np.asarray(y)
+    conf, correct = proba.max(axis=1), proba.argmax(axis=1) == y
+    rows = []
+    for lo, hi in zip(edges[:-1], edges[1:]):
+        m = (conf >= lo) & ((conf < hi) if hi < 1 else (conf <= hi))
+        rows.append({"bin": f"{lo:.0%}-{hi:.0%}", "count": int(m.sum()),
+                     "mean_confidence": float(conf[m].mean()) if m.any() else None,
+                     "accuracy": float(correct[m].mean()) if m.any() else None})
+    return rows
+
+
+def _hgb_plain():
+    # No categorical splits (Core ML can't export them); categories arrive one-hot from onehot().
+    return HistGradientBoostingClassifier(early_stopping=True, categorical_features=None, random_state=0)
+
+
+def train_v3(train, calib, dropout=True):
+    """Train the three heads and their calibration; return the app bundle (see scripts/train_predictor.py).
+
+    With dropout, each set is the clean rows plus a copy with blocks blanked, so the model learns both
+    "everything visible" and every kind of partial view. Calibration is fit on held-out seasons only.
+    """
+    if dropout:
+        train = pd.concat([train, apply_dropout(train, seed=0)], ignore_index=True)
+        calib = pd.concat([calib, apply_dropout(calib, seed=1)], ignore_index=True)
+    heads = {}
+    for head, classes in HEADS.items():
+        rows, y = head_rows(train, head)
+        model = _hgb_plain().fit(onehot(rows, V3_INPUTS), y)
+        crows, cy = head_rows(calib, head)
+        raw = model.decision_function(onehot(crows, V3_INPUTS))
+        cal = fit_platt(raw, cy) if head == "run_pass" else fit_temperature(raw, cy)
+        heads[head] = {"model": model, "classes": classes, "calib": cal}
+    return {
+        "version": 3,
+        "features": list(onehot(train.head(1), V3_INPUTS).columns),
+        "onehot": {c: CATEGORIES[c] for c in V3_INPUTS if c in CATEGORIES},
+        "sources": FEATURE_SOURCES,
+        "heads": heads,
+    }
