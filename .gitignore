@@ -60,3 +60,6 @@ Pods/
 .DS_Store
 .vscode/
 .idea/
+
+# --- Agent HQ runtime status ---
+tools/agent-hq/status/
