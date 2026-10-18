@@ -59,13 +59,14 @@ The handoff between "vision" (first four stages) and "football" (last two) is a 
 | `scripts/` | CLI entry points: download, train, evaluate, export |
 | `tests/` | Python tests for `pipeline/` (Swift tests live in the Xcode project) |
 | `docs/` | Docs; `PROGRESS.md` is the user's learning log |
+| `docs/research/` | Option docs for the user's pending decisions (agents recommend, the user decides) |
 | `tools/agent-hq/` | Agent HQ: live game dashboard of subagents (`report.py` writes status, `index.html` shows it) |
 
 ## Agent team
 
 The user wants Claude to act as **lead ("Coach")** and delegate to labeled, narrow-niche subagents, shown live in Agent HQ. Every subagent reports progress with:
 `python3 tools/agent-hq/report.py <id> "<Name>" "<Role>" <working|done|blocked|idle> "<task>"`
-Roles map to game stations: Lead, Data, ML, Docs, UI (others get a generic desk). Current roster: `lead` Coach (Lead), `wrangler` Data Wrangler (Data), `modeler` Modeler (ML), `teacher` Teacher (Docs), `gamedev` Game Dev (UI). Agents that finish aren't deleted: they go back on the **bench** (`idle`, "On the bench: …") as reserves, and the lead reuses an existing agent before creating a new one with an overlapping niche. The lead reviews every subagent's output (runs tests, spot-checks) before handing off to the next. View the game: `python3 -m http.server 8765 -d tools/agent-hq`, then open http://localhost:8765.
+Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training Gym, Docs → Library, UI → Workshop, Vision → Vision Lab (any other role also goes to the Vision Lab desk). Roster: `lead` Coach (Lead), `strategist` Strategist (Strategy; a Plan agent that designs each round's team), `wrangler` Data Wrangler (Data), `modeler` Modeler (ML), `bucketeer` Bucket Scout (ML), `surveyor` Field Surveyor (Vision), `scout` Film Scout (Docs, web research), `teacher` Teacher (Docs, writes PROGRESS.md), `gamedev` Game Dev (UI). The roster panel has Active and Bench tabs. A round starts with Strategist planning; the lead then launches agents in phases, with file ownership per agent and only the lead running `uv add`. Agents that finish aren't deleted: they go back on the **bench** (`idle`, "On the bench: …") as reserves, and the lead reuses an existing agent before creating a new one with an overlapping niche. The lead reviews every subagent's output (runs tests, spot-checks) before handing off to the next. View the game: `python3 -m http.server 8765 -d tools/agent-hq`, then open http://localhost:8765.
 
 ## Key decisions and reasoning
 
@@ -86,21 +87,28 @@ Roles map to game stations: Lead, Data, ML, Docs, UI (others get a generic desk)
 ## Open questions (not decided yet)
 
 - Minimum iOS version; whether macOS is a target.
-- Labeled football detection data source (public datasets vs. hand-labeling).
-- Exact prediction targets and buckets for "direction" and "depth".
-- Where the app gets game situation (down, distance, clock, score): scorebug OCR vs. user input. The run/pass model depends on it heavily.
+- Labeled football detection data source (public datasets vs. hand-labeling). Evidence: `docs/research/detection_datasets.md`.
+- Exact prediction targets and buckets for "direction" and "depth". Evidence: `docs/research/direction_depth_options.md` (recommends D2 runs-only L/M/R; P3 ≤0/1–9/10+ on throws).
+- Where the app gets game situation (down, distance, clock, score): scorebug OCR vs. user input. Evidence: `docs/research/situation_source.md` (E4: no scoreboard 75.0% vs full 76.2%; the scoreboard mostly sharpens confidence).
 
 ## Current state
 
-_As of 2026-10-17 (session 3)_
+_As of 2026-10-18 (session 4)_
 
-- `git init` done; **no commits yet**.
-- Python env: **uv**, Python 3.12 pinned. Deps: kaggle, pandas, pyarrow, scikit-learn; dev: pytest. Run with `uv run`; tests with `uv run pytest` (4 passing).
-- Data: nflverse 2022 play-by-play + participation (formation/personnel) in `data/raw/nflverse/`. BDB 2025 **not downloaded**; still waiting on the user's Kaggle token and rule acceptance. `scripts/download_data.sh` fetches everything.
-- Prediction stage v1 (nflverse only, no x/y positions): `uv run python -m scripts.build_dataset` → `data/processed/plays_2022.parquet` (35,193 plays); `uv run python -m scripts.train_prediction` → `models/*.joblib` + `models/metrics_2022.json`. Run/pass 75.2% on weeks 15–22 (always-pass 59.4%, situation-only 70.7%), well calibrated. Direction has no skill (40.1% vs 40.2%).
-- Agent HQ dashboard: see "Agent team".
+- `git init` done; **no commits yet**. A pre-round-2 code backup tarball was made in the session scratchpad (temporary).
+- Python env: **uv**, Python 3.12. Deps: kaggle, pandas, pyarrow, scikit-learn, opencv-python-headless, numpy; dev: pytest. `uv run pytest` → 14 passing.
+- Data: nflverse pbp + participation 2016–2025 and FTN charting 2022–2025 in `data/raw/nflverse/` (~224 MB). BDB 2025 **not downloaded** (needs the user's Kaggle token); `bash scripts/download_data.sh --bdb` runs that part.
+- Prediction: `scripts.build_dataset` → `data/processed/plays_<year>.parquet` + `plays_2016_2025.parquet` (342,499 plays, 45 cols; era-specific columns documented in `dataset.py`). `scripts.train_prediction` = original 2022 model (75.2%). `scripts.experiments_prediction` = E1–E5 → `models/metrics_multiseason.json`, `models/run_pass_multiseason.joblib` (2025 test: 76.2% vs 60.4% always-pass). `scripts.analyze_buckets` → `models/metrics_buckets.json`. Direction has no real skill without x/y.
+- Field mapping v0: `pipeline/field_mapping/` (geometry, homography fit with float64 DLT refit, synthetic cameras); `scripts.field_mapping_error_budget` prints the error table. No pixel line detection yet (needs footage).
+- Agent HQ: see "Agent team". Bench: wrangler, modeler, teacher, gamedev, strategist, surveyor, scout, bucketeer.
 
 ## Session log
+
+### 2026-10-18: Round 2 (Strategist + 6 agents)
+- **Done:** Strategist (Plan agent) designed a 3-phase plan. Phase 1: Data Wrangler extended the data to 2016–2025 + FTN (era harmonization, FTN leak ban with a test); Field Surveyor built field_mapping v0 + error budget; Film Scout wrote the detection-data and situation-source docs. Phase 2: Modeler ran E1–E5 (added `season_split`, `corrupt_category`, `shift_count`, `ERA_FEATURES`; additions only); Bucket Scout compared direction/depth bucket schemes. Phase 3: Teacher wrote the PROGRESS entry and filled the E4 section of situation_source.md. Coach added OpenCV, the "Vision Lab" station (role `vision`), Active/Bench tabs (via Game Dev), and reviewed every handoff.
+- **Changed:** `download_data.sh` runs BDB only with `--bdb`. FB counts as RB. Box counts stay in per-era columns (`defenders_in_box`, `box_part23`, `ftn_box`), never merged. `offense_formation` is NaN for 2023+; use `formation_family`/`is_empty` across eras.
+- **Broken/unresolved:** Nothing broken. Findings: more seasons +0.1–0.2 pts only; FTN columns add ~0; each 10% formation misread costs ~1.5 pts; the 2025 model is 1–2 pts overconfident in the 60–90% bins; 2024 pistol spike (9.3%) unexplained; formation-dropout training (to handle unreadable formations) suggested but not built. Nothing committed.
+- **Left off:** Waiting on the user: first commit, Kaggle token, 3 decisions (docs/research), footage clips for vision, approval of heavy deps (torch/ultralytics) when detection starts.
 
 ### 2026-10-17: Agent team + first play predictor
 - **Done:** Set up a lead + subagent workflow and the Agent HQ status system. Data Wrangler built `pipeline/prediction/dataset.py`, `scripts/build_dataset.py`, and tests (label = `qb_dropback` intent; drops no_play/2-pt/aborted; parses personnel; `off_ol` defaults to 5). Modeler built `pipeline/prediction/model.py`, `scripts/train_prediction.py`, and tests (time split by week ≤14 vs >14; HistGradientBoosting; isotonic calibration tried, made it worse, not used). Teacher wrote the PROGRESS.md entry. Game Dev built `tools/agent-hq/index.html`.

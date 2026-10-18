@@ -15,14 +15,144 @@ gantt
     section Data
     nflverse play-by-play 2022 :done, nflv, 2026-10-17, 1d
     Big Data Bowl 2025 download :active, bdb, 2026-10-17, 1d
+    nflverse 2016-2025 + FTN   :done, multi, 2026-10-17, 1d
 
     section Prediction
     Training table (nflverse)   :done, table, 2026-10-17, 1d
     Run/pass + direction models :done, models, 2026-10-17, 1d
+    Multi-season experiments    :done, exps, 2026-10-17, 1d
+    Direction/depth bucket study :done, buckets, 2026-10-17, 1d
+
+    section Vision
+    Field mapping v0 (synthetic) :done, fmap, 2026-10-17, 1d
+
+    section Research
+    Detection data + situation source docs :done, research, 2026-10-17, 1d
 
     section Tooling
     Agent team + Agent HQ dashboard :done, hq, 2026-10-17, 1d
+    Round 2 agent team (Strategist + 6) :done, team2, 2026-10-17, 1d
 ```
+
+---
+
+## 2026-10-18: Ten seasons, field mapping, and decision research
+
+_The work ran overnight, from the evening of Oct 17 into Oct 18._
+
+### What was done
+Four things happened in parallel:
+
+1. **Ten seasons of data.** The training table grew from 2022 only to **2016–2025: 342,499 plays, 45 columns**, now including FTN's hand-charted pre-snap details (available 2022+). As a sanity check, the 2022 slice is still exactly 35,193 plays, and last session's model C still scores 75.23%.
+2. **Five experiments on the run/pass model** (E1–E5, `scripts/experiments_prediction.py`, results in `models/metrics_multiseason.json`):
+
+| # | Question | Answer |
+|---|---|---|
+| E1 | Do older seasons help? | Barely. On the same 2022 test, training on 2019–2022 (128,543 plays) instead of just 2022 (25,762) moves accuracy 75.23% → 75.35%, log loss 0.491 → 0.487. |
+| E2 | Does it hold up on the newest season? | Yes. Trained on 2016–2024, tested on all of 2025: **76.2%**, vs 60.4% for always-pass and 71.1% for situation only. |
+| E3 | Do FTN's extra pre-snap columns (hash, QB spot, backfield count) help? | Essentially no: 76.16% → 76.25%, log loss 0.483 → 0.482. |
+| E4 | How much does the scoreboard (down, distance, clock, score) matter? | Alignment only: 75.0%. Adding the full situation: 76.2%. It mostly sharpens confidence (log loss 0.527 → 0.480). |
+| E5 | What if vision misreads the formation? | Each 10% of misreads costs about 1.5 points. A box count off by one costs nothing. |
+
+The saved model is the E2 one (`models/run_pass_multiseason.joblib`, trained on 2016–2024). It uses `formation_family` instead of the old 7-label formation, so it still works on 2023+ data (see concept 1).
+
+3. **Field mapping v0, the first vision code.** `pipeline/field_mapping/field.py` holds the field's geometry in yards, from the NFL rulebook. For example, the hash marks are 70 ft 9 in from each sideline, which is 23.583 yd. `homography.py` fits the image-to-field map. It was tested only on **synthetic cameras** (perfect, made-up pinhole cameras where we know the true answer), with random noise added to the landmark pixels. Output from `scripts/field_mapping_error_budget.py`, in yards of error on the field:
+
+| Camera view | 1 px noise: median / 95th percentile | 4 px noise: median / 95th percentile |
+|---|---|---|
+| All-22 | 0.017 / 0.043 | 0.086 / 0.252 |
+| Broadcast | 0.014 / 0.040 | 0.070 / 0.218 |
+| End zone | 0.019 / 0.051 | 0.085 / 0.279 |
+| Broadcast, sideline landmarks only | unmappable | unmappable |
+
+With 1 px of noise, a broadcast view puts 95% of points within 0.04 yd (about 1.5 in). Even at 4 px, the worst view stays under 0.28 yd (about 10 in). The math is not the bottleneck. Finding and naming the landmarks will be.
+
+4. **Research for three decisions** you need to make (see "Decisions waiting for you" below).
+
+### Why it was needed
+- **One season was a small sample.** We needed to know whether more data helps (it barely does) and whether the model works on 2025, the season closest to what the app will see (it does).
+- **Vision will make mistakes.** E5 turns "how accurate must formation reading be?" into numbers. That's a spec for the vision stages.
+- **Field mapping is the bridge** between pixels and the predictor. Testing it on synthetic cameras with a known answer checks the math on its own, before messy real video gets involved. (ECE parallel: you characterize a filter with a clean test tone before connecting the real antenna.)
+- **Three design questions were blocking the next steps.** Each needed evidence before you choose.
+
+### How it fits the bigger pipeline
+```
+view_classification → detection → tracking → field_mapping → formation → prediction
+      (none)          (research)    (none)    v0, synthetic     (none)    10 seasons
+```
+`prediction` is now trained and stress-tested. `field_mapping` exists in its first form. `detection` has a researched plan. E5 also gives the `formation` stage a target. Every 10% of misread formations costs about 1.5 points. Past about 20% misreads, a guess is no better than saying "unknown" (concept 5).
+
+### Concepts worth understanding
+
+**1. Label drift: the same column can change meaning between eras.**
+In 2023 the NFL's participation data switched sources, and the labels changed:
+- **Formation.** Through 2022 the labels were `SHOTGUN`, `SINGLEBACK`, `EMPTY`, `I_FORM`, `PISTOL`, `JUMBO`, `WILDCAT`. From 2023 they are only `SHOTGUN` / `UNDER CENTER` / `PISTOL`, which says where the **QB** stands, not the whole formation. `I_FORM` and `SINGLEBACK` both become "UNDER CENTER". So last session's fact "I_FORM is a pass only 27.5% of the time" can't be learned from 2023+ data. The fix is `formation_family` (shotgun / under_center / pistol), which can be computed for every season, plus `is_empty`, taken from NGS's `EMPTY` label or from FTN's "0 players in the backfield".
+- **Personnel.** "1 RB, 1 TE, 3 WR" became "1 C, 2 G, 1 QB, 1 RB, 2 T, 1 TE, 3 WR". The detailed positions are summed back into the old groups (C + G + T = OL; FB counts as RB). A trap: a quick text search for "OL" also matches "OLB" (outside linebacker). One agent's early claim about 2023 lineman counts came from exactly that mistake, and Data Wrangler caught it.
+- **Box counts.** NGS and FTN both count "defenders in the box", but they agree on only 59% of 2022 plays. They define the box differently. So each source keeps its own column (`defenders_in_box` ≤2022, `box_part23` 2023+, `ftn_box`), left blank outside its era. (ECE parallel: two sensors with different calibrations go on separate channels. You don't average a reading in °C with one in °F.)
+- **Sudden shifts are a warning sign.** Pistol was 9.3% of 2024 plays, vs 2–5% in other seasons. That could be a real trend or a charting change. Either way, check each season's label mix before trusting it.
+
+**2. Leakage, again: FTN's tempting columns.**
+FTN also charts play-action, screens, RPOs, blitzers, and more. All of these happen **after** the snap. Play-action is a fake handoff after the ball is snapped, and a play-action play is a pass by definition. Feed that column in, and the model learns "play-action means pass" and looks brilliant. Before the snap, though, the column doesn't exist yet. `dataset.py` reads only five whitelisted FTN columns (starting hash, QB location, backfield count, box count, motion), and `test_ftn_banned_columns_never_reach_output` fails if anything else gets in. Motion is borderline, because some motion happens right at the snap, so E3 tested it separately.
+
+**3. Season-aware splits.**
+Last session's split was "weeks 1–14 train, weeks 15+ test". With ten seasons, that rule would train on 2025 week 10 and test on 2016 week 16: learning from the future to predict the past. The new `season_split` picks a test period (for example "2025, all weeks") and trains only on what came **strictly before** it (2016–2024). The bucket study used "all earlier seasons plus 2022 weeks 1–14 → test on 2022 weeks 15–22".
+
+**4. Ablation: take parts away and see what breaks.**
+To learn what each input is worth, start from a stripped-down model and add pieces back one at a time (or remove them one at a time). E4 did this with the situation, on 2025:
+
+| Model sees | Accuracy | Log loss |
+|---|---|---|
+| Alignment only (what a camera sees) | 75.0% | 0.527 |
+| + down, distance | 75.7% | 0.503 |
+| + yard line, goal-to-go | 75.8% | 0.498 |
+| + score, quarter, clocks | 76.3% | 0.481 |
+| + timeouts (full) | 76.2% | 0.480 |
+
+The scoreboard is worth about 1 point of accuracy, but a big chunk of log loss. It makes the confidence sharper more than it changes the calls. Timeouts add nothing. (ECE parallel: pulling one component off a board to see what it was doing.) The full write-up is in `docs/research/situation_source.md`.
+
+**5. Robustness: feed the model the mistakes vision will make.**
+E5 took the 2019–2022 model and deliberately corrupted its 2022 test inputs:
+
+| Formation misread rate | Accuracy | Log loss |
+|---|---|---|
+| 0% | 75.3% | 0.487 |
+| 10% | 73.5% | 0.511 |
+| 20% | 72.1% | 0.531 |
+| 30% | 70.7% | 0.552 |
+| Formation unknown (left blank) | 70.5% | 0.531 |
+
+Box count off by ±1 on up to 30% of plays: accuracy stays at 75.3–75.4%, so it doesn't matter. The surprise is in the last two rows. At 30% misreads, accuracy is about the same as not knowing the formation at all, but log loss is **worse** (0.552 vs 0.531). A confidently wrong input does more damage than an honest blank. At 20% misreads, log loss already equals "unknown". This suggests the vision side should report "formation: unsure" rather than force a guess.
+
+**6. Homography: one 3×3 matrix from pixels to yards.**
+The field is a flat plane, and so is the image. Any camera view of a plane is a **projective transform**: a 3×3 matrix H with `[X, Y, 1] ∝ H · [u, v, 1]` (pixel `(u, v)` → field `(X, Y)` in yards). The overall scale of H doesn't matter, so it has 8 unknowns. Each landmark gives 2 equations (one for X, one for Y), so **4 landmarks** pin it down. Example: the left 35-yard line crossing the near hash is field point (45, 23.583) in our coordinates. Find where it appears in the image, and that's one landmark. More landmarks average out pixel noise. `homography.py` solves the least-squares version with an SVD (the solution is the singular vector with the smallest singular value). ECE parallel: this is camera calibration, the same math as rectifying a tilted photo of a document. A numeric detail: OpenCV computes in 32-bit floats, which left errors around a millionth of a yard, so Field Surveyor added a 64-bit refit.
+
+**7. Why points along one line can't tell you how far across the field you are.**
+In a tight broadcast shot you might see only where the yard lines cross the near sideline. Every one of those points has Y = 0. Now imagine stretching the field across its width, like pulling a rubber sheet away from that sideline: every sideline point stays exactly where it was. So those points can't tell a player 10 yd from the sideline apart from one 30 yd away. In degrees-of-freedom terms, points on one line fix only 5 of H's 8 unknowns, no matter how many there are. One extra point off the line adds 2, for a total of 7, still short of 8. It's a rank-deficient system: more measurements of the same kind don't raise the rank. `fit()` returns `None` here ("unmappable") instead of a confident wrong answer, which matches the app's "say how sure you are" rule.
+
+**8. Log loss vs accuracy when the class mix shifts.**
+Bucket Scout's runs-only direction model (left / middle / right):
+- **2022 test:** the baseline always says "left" (the most common direction in training) and gets 38.9%. The model gets 41.2%: **+2.2 points**, log loss down **1.9%**.
+- **2025 test:** late-season runs swung right (39.9% right, 35.3% left). The baseline still says "left", so it drops to 35.3%. The model gets 40.6%: **+5.3 points**, log loss down only **1.7%**.
+
+Accuracy says the model got more than twice as good in 2025. Log loss says it got slightly *worse*. The accuracy "gain" was the baseline's bad luck, not the model's skill. Log loss scores the probabilities, so a shift in the test mix barely moves it. Each log-loss gap also comes with a standard error (about 0.0015–0.0045), and gaps under about 2 standard errors are noise.
+
+### Honest limitations
+- **Field mapping has only seen made-up cameras.** No lens distortion, no camera motion, and it is told which yard line each landmark belongs to. In real video, naming the lines is the hard part. Mislabel every line by one, and the whole map shifts 5 yd without any error being raised.
+- **No real video has gone through anything yet.** Detection, tracking, and formation reading don't exist.
+- **Direction still has essentially no skill.** The best option removes about 2% of the baseline's log loss. It most likely needs real (x, y) positions: which side the tight end is on, where the back is offset. Those come from Big Data Bowl data (still waiting on your Kaggle token) and, later, from the vision stages.
+- **More data didn't fix it.** Ten seasons barely beat one. The limit is what the inputs say, not how many examples we have.
+- **The 2025 model is slightly overconfident in the middle bins.** For example, when it says about 75%, it's right 72.7% of the time, and when it says about 85%, it's right 83.7%. That's 1–2 points, small but real.
+- **E5's errors are random.** Real vision mistakes will follow patterns (look-alike formations get confused with each other more often), so treat E5 as a rough guide.
+
+### Decisions waiting for you
+Three research docs, each with one agent's recommendation. **These are recommendations, not decisions. You choose.**
+
+1. **Detection training data**: [`docs/research/detection_datasets.md`](research/detection_datasets.md). Film Scout recommends starting with a COCO-pretrained YOLO11 (no labels, no accounts), then hand-labeling about 500 of your own frames with YOLO pre-labels (about 8–12 hours). Note that Ultralytics weights are AGPL-3.0: fine for personal use, but a problem if you ever ship the app.
+2. **Where down, distance, clock, and score come from**: [`docs/research/situation_source.md`](research/situation_source.md). Film Scout recommends a two-tap input panel first and scorebug OCR as a pre-fill later. All-22, end-zone, and stands video have no scorebug. The doc now includes the E4 numbers above.
+3. **Direction and depth targets**: [`docs/research/direction_depth_options.md`](research/direction_depth_options.md). Bucket Scout recommends **D2** for direction (runs only, left/middle/right) and **P3** for depth (air yards ≤0 / 1–9 / 10+, throws only). Sacks and scrambles (about 12% of dropbacks in 2025) would be shown as a plain base-rate note.
+
+### Who did the work
+Coach led a second team. **Strategist** planned it. It checked what data exists (participation 2016–2025, FTN 2022–2025), spotted the 2023 label change and the broken split, designed the plan, and was then benched. **Data Wrangler** built the 10-season table. **Modeler** ran E1–E5. **Field Surveyor** wrote field mapping. **Film Scout** researched detection data and the situation source. **Bucket Scout** compared direction/depth options. **Teacher** wrote this entry. The agents also checked each other's work: Data Wrangler caught Strategist's "OL"/"OLB" mix-up.
 
 ---
 
