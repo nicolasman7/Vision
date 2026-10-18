@@ -1,0 +1,47 @@
+[
+  {
+    "id": "belmont_woburn_2023_q2_snap",
+    "source_page": "https://archive.org/details/snafuinfinityfootball_102023-vs-woburn",
+    "file_url": "https://archive.org/download/snafuinfinityfootball_102023-vs-woburn/football_102023-vs-woburn.ts",
+    "license": "CC0 1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "author": "Belmont Media Center",
+    "attribution_text": "Belmont HS Varsity Football: Marauders vs Woburn Tanners 10/20/23, Belmont Media Center, CC0 1.0 (via Internet Archive)",
+    "angle": "sideline_elevated",
+    "start_s": 2685,
+    "end_s": 2712,
+    "resolution": "1920x1080",
+    "fps": 29.97,
+    "notes": "High school, night. Huddle breaks, offense sets, snap at ~2700 s. TV scorebug visible (score, quarter, clock; no down/distance). CC0 was applied by the uploader (access@belmontmedia.org), who is also the producer."
+  },
+  {
+    "id": "belmont_woburn_2023_q3_snap",
+    "source_page": "https://archive.org/details/snafuinfinityfootball_102023-vs-woburn",
+    "file_url": "https://archive.org/download/snafuinfinityfootball_102023-vs-woburn/football_102023-vs-woburn.ts",
+    "license": "CC0 1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "author": "Belmont Media Center",
+    "attribution_text": "Belmont HS Varsity Football: Marauders vs Woburn Tanners 10/20/23, Belmont Media Center, CC0 1.0 (via Internet Archive)",
+    "angle": "sideline_elevated",
+    "start_s": 4188,
+    "end_s": 4215,
+    "resolution": "1920x1080",
+    "fps": 29.97,
+    "notes": "Same game, wider framing, offense set at ~4197-4203 s then snap. Players stand along the near sideline in the foreground (good occlusion test). CC0 applied by the uploader/producer."
+  },
+  {
+    "id": "wincam_winchester_2021_q2_snap",
+    "source_page": "https://archive.org/details/snafuinfinityWHS_Boys_Varsity_Football_vs_Belmont_High_School_10-8-21",
+    "file_url": "https://archive.org/download/snafuinfinityWHS_Boys_Varsity_Football_vs_Belmont_High_School_10-8-21/WHS_Boys_Varsity_Football_vs_Belmont_High_School_10-8-21.mp4",
+    "license": "Public Domain Mark 1.0",
+    "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+    "author": "WinCam (Winchester community TV); uploaded by Belmont Media Center",
+    "attribution_text": "BHS Varsity Football: Marauders vs Winchester 10/08/21, WinCam, Public Domain Mark (via Internet Archive)",
+    "angle": "high_wide",
+    "start_s": 1985,
+    "end_s": 2015,
+    "resolution": "854x480",
+    "fps": 29.97,
+    "notes": "Highest, widest camera found: sees most of the field width and many yard lines (closest open source to All-22, but still a following TV camera, not a fixed coaches' film). 3rd & 8, offense set ~1995-2001 s, snap ~2002 s. Scorebug shows down & distance. DOUBT: the PD mark was applied by the uploader (Belmont Media Center), while the producer is WinCam."
+  }
+]
