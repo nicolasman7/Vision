@@ -79,6 +79,12 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 - **Tracking-by-detection with ByteTrack.** It needs no extra re-identification network, runs cheaply, and keeps low-confidence boxes, which helps when players overlap in a crowd.
 - **Monorepo.** Python produces the models the Swift app loads. Keeping both in one repo means model and app changes stay in sync.
 - **Notebooks are scratch space.** Anything that works gets moved into `pipeline/` so it can be tested and exported.
+- **Decided 2026-10-18 (user accepted the agents' recommendations; evidence in `docs/research/`):**
+  - *Direction:* runs only, left/middle/right from the offense's view (D2). Pass direction is not a headline output (no pre-snap skill).
+  - *Depth:* passes only, intended air yards in 3 buckets: ≤0 / 1–9 / 10+ (P3), on throws only. Sacks/scrambles are excluded from the target; show their base rate (~12%) as a note.
+  - *Situation source:* user-input panel first (down + distance in ≤2 taps), scorebug OCR later as a pre-fill for broadcast footage. The model must still work with no situation at all (alignment-only ≈ 75%).
+  - *Detection data:* start with COCO-pretrained YOLO (zero labels), then hand-label ~500 frames pre-labeled by YOLO (the user labels; agents only prepare). Ultralytics is AGPL-3.0: fine for personal use, revisit before any distribution.
+  - *Footage:* openly licensed clips only (public domain / Creative Commons / free stock), with a license manifest. No ripping NFL broadcasts or YouTube.
 - **Data, weights, and exports are git-ignored.** They are large, can be regenerated, and the footage is copyrighted.
 
 ## Constraints
@@ -90,9 +96,7 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 ## Open questions (not decided yet)
 
 - Minimum iOS version; whether macOS is a target.
-- Labeled football detection data source (public datasets vs. hand-labeling). Evidence: `docs/research/detection_datasets.md`.
-- Exact prediction targets and buckets for "direction" and "depth". Evidence: `docs/research/direction_depth_options.md` (recommends D2 runs-only L/M/R; P3 ≤0/1–9/10+ on throws).
-- Where the app gets game situation (down, distance, clock, score): scorebug OCR vs. user input. Evidence: `docs/research/situation_source.md` (E4: no scoreboard 75.0% vs full 76.2%; the scoreboard mostly sharpens confidence).
+- Big Data Bowl / Kaggle: parked by the user (2026-10-18). Don't plan work that needs it.
 
 ## Current state
 

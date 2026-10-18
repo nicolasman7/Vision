@@ -159,6 +159,39 @@ When an agent's task or state changes, its bubble pops or flashes so the user no
 
 ## 3. How the team works
 
+### Delegate by default (the lead is not a worker)
+Any real work goes to a labeled subagent, so it runs in parallel and shows up on the dashboard. That includes writing code, running experiments, research, downloads, docs and dashboard changes.
+- **Independent jobs launch in the same turn.**
+- **Reuse benched agents first.**
+- **The lead itself does only lead-only work:**
+  - planning and briefing
+  - reviewing handoffs (running the tests, spot-checks)
+  - installing dependencies
+  - git
+  - project memory (`CLAUDE.md`) and round logs
+- Quick answers to the user's questions need no agents.
+- If the lead notices it is writing feature code or doing research itself, it should stop and hand the job to an agent.
+
+**Make it automatic.** A `UserPromptSubmit` hook in the project's `.claude/settings.json` re-injects this reminder on every user message. Copy it as-is:
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"AGENT TEAM REMINDER (AGENT_TEAM.md): you are the lead. Delegate real work to labeled subagents in parallel (reuse benched agents first) and keep them visible on Agent HQ via tools/agent-hq/report.py. Do yourself only lead-only work: planning, reviewing hand-offs, installing dependencies, git, and CLAUDE.md/round logs. Quick answers to questions need no agents.\"}}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+If `.claude/settings.json` already exists, merge this into its `hooks` rather than replacing the file. A new hook takes effect from the next session; in an already-running session, open `/hooks` once to load it.
+
 ### Roles
 - **Lead (the main session, "Coach").** It plans, hands out jobs, reviews every handoff, installs dependencies, and owns `CLAUDE.md` and the round logs. It shows up on the board as `lead`.
 - **Strategist**, a read-only planning agent (the `Plan` agent type), is the first agent after the dashboard in every round.
@@ -255,7 +288,7 @@ Final report to Coach: <what to include, short>.
 ## 5. Quick start checklist
 
 1. Read the project (README, CLAUDE.md, code layout).
-2. Create `tools/agent-hq/report.py` (§1) and add `status/` to `.gitignore`.
+2. Create `tools/agent-hq/report.py` (§1), add `status/` to `.gitignore`, and add the delegation reminder hook (§3) to `.claude/settings.json`.
 3. Put the lead on the board: `python3 tools/agent-hq/report.py lead "Coach" "Lead" working "Setting up HQ"`.
 4. Build the themed dashboard (§2), start the server in the background, open it for the user, and tell them the URL.
 5. Launch Strategist (§3), review its plan, then run the phases.

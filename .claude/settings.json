@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '%s' '{\"hookSpecificOutput\": {\"hookEventName\": \"UserPromptSubmit\", \"additionalContext\": \"AGENT TEAM REMINDER (AGENT_TEAM.md): you are the lead. Delegate real work to labeled subagents in parallel (reuse benched agents first) and keep them visible on Agent HQ via tools/agent-hq/report.py. Do yourself only lead-only work: planning, reviewing hand-offs, installing dependencies, git, and CLAUDE.md/round logs. Quick answers to questions need no agents.\"}}'",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
