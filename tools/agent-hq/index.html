@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent HQ</title>
+<style>
+  :root {
+    --bg: #14121f; --panel: #1e1b2e; --panel2: #272240; --ink: #ece6ff; --dim: #9a92b8; --line: #3a3456;
+    --working: #5bd17a; --idle: #8a9bb8; --done: #f2c94c; --blocked: #ff5d5d; --stale: #b48cff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+    background: var(--panel); border-bottom: 3px solid #000; box-shadow: 0 3px 0 var(--line); }
+  h1 { margin: 0; font-size: 20px; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; }
+  h1 span { color: var(--done); }
+  #summary { margin-left: auto; font-size: 12px; color: var(--dim); text-align: right; }
+  main { flex: 1; display: flex; min-height: 0; }
+  #stage { flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+    min-width: 0; padding: 12px; }
+  canvas { display: block; image-rendering: pixelated; border: 3px solid #000; border-radius: 4px;
+    box-shadow: 0 0 0 3px var(--line), 0 10px 40px #000c; }
+  aside { width: 330px; background: var(--panel); border-left: 3px solid #000; overflow-y: auto; padding: 14px; }
+  aside h2 { margin: 0 0 10px; font-size: 13px; letter-spacing: 2px; color: var(--dim); }
+  .row { display: grid; grid-template-columns: 12px 1fr auto; gap: 4px 8px; padding: 9px 10px; margin-bottom: 8px;
+    background: var(--panel2); border: 2px solid #000; border-radius: 4px; cursor: pointer; box-shadow: 0 2px 0 #000; }
+  .row:hover, .row.sel { outline: 2px solid var(--done); }
+  .dot { width: 10px; height: 10px; margin-top: 4px; border: 2px solid #000; border-radius: 2px; }
+  .name { font-weight: bold; }
+  .role { color: var(--dim); font-size: 12px; }
+  .task { grid-column: 2 / 4; font-size: 12px; color: #cfc8ea; word-break: break-word; }
+  .ago { grid-column: 2 / 4; font-size: 11px; color: var(--dim); }
+  .badge { font-size: 10px; font-weight: bold; letter-spacing: 1px; padding: 1px 6px; height: fit-content;
+    border: 2px solid #000; border-radius: 3px; color: #000; text-transform: uppercase; }
+  .b-working { background: var(--working); } .b-idle { background: var(--idle); } .b-done { background: var(--done); }
+  .b-blocked { background: var(--blocked); } .b-stale { background: var(--stale); }
+  .tabs { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tabs button { flex: 1; padding: 6px 8px; font: inherit; font-size: 12px; font-weight: bold; letter-spacing: 1px;
+    color: var(--dim); background: var(--panel2); border: 2px solid #000; border-radius: 4px; box-shadow: 0 2px 0 #000; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { color: #000; background: var(--done); }
+  .empty { color: var(--dim); padding: 16px; border: 2px dashed var(--line); border-radius: 6px; text-align: center; }
+  .empty code { color: var(--ink); font-size: 11px; word-break: break-all; }
+  #card { position: absolute; top: 20px; left: 20px; width: min(320px, calc(100% - 40px)); padding: 12px 14px;
+    background: #fff8e7; color: #2a2238; border: 3px solid #000; border-radius: 6px; box-shadow: 4px 4px 0 #000; }
+  #card[hidden] { display: none; }
+  #card h3 { margin: 0 0 4px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  #card .meta { font-size: 12px; color: #6b6280; margin-bottom: 8px; }
+  #card .full { white-space: pre-wrap; word-break: break-word; margin-bottom: 8px; }
+  #card button { position: absolute; top: 6px; right: 8px; background: none; border: 0; font: inherit;
+    font-size: 16px; cursor: pointer; color: #2a2238; }
+  .legend { margin-top: 14px; font-size: 11px; color: var(--dim); line-height: 1.7; }
+  @media (max-width: 820px) {
+    main { flex-direction: column; }
+    #stage { flex: none; padding: 8px; }
+    aside { width: auto; border-left: 0; border-top: 3px solid #000; overflow: visible; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>AGENT <span>HQ</span></h1>
+  <div id="summary">connecting…</div>
+</header>
+<main>
+  <div id="stage">
+    <canvas id="game" aria-label="Agent HQ game world"></canvas>
+    <div id="card" hidden></div>
+  </div>
+  <aside>
+    <h2>ROSTER</h2>
+    <div class="tabs"><button data-tab="active">Active</button><button data-tab="bench">Bench</button></div>
+    <div id="list"></div>
+    <div class="legend">Click a player (here or on the field) for details.<br>
+      Working agents head to their station · idle ones take the bench ·
+      finished ones celebrate in the end zone · stuck ones raise a red "!".</div>
+  </aside>
+</main>
+<script>
+"use strict";
+// ---------- constants ----------
+const W = 480, H = 300;                // logical world size in "pixels"
+const POLL_MS = 2000, STALE_S = 600, SPEED = 55;
+const FIELD = { x: 90, y: 88, w: 300, h: 116 };
+const TUNNEL = { x: 40, y: 166 };
+const STATIONS = {
+  office:   { name: "Coach's Office", x: 10,  y: 8,   w: 140, h: 64, floor: "#5a4636", accent: "#ffcf6b", tool: "clipboard" },
+  mine:     { name: "Data Mine",      x: 170, y: 8,   w: 140, h: 64, floor: "#3e3631", accent: "#7fe3ff", tool: "pick" },
+  gym:      { name: "Training Gym",   x: 330, y: 8,   w: 140, h: 64, floor: "#33405a", accent: "#ff8a5c", tool: "dumbbell" },
+  library:  { name: "Library",        x: 10,  y: 228, w: 140, h: 64, floor: "#4b3a52", accent: "#d6a6ff", tool: "book" },
+  workshop: { name: "Workshop",       x: 170, y: 228, w: 140, h: 64, floor: "#5c4a2e", accent: "#ffd23f", tool: "hammer" },
+  desk:     { name: "Desk",           x: 330, y: 228, w: 140, h: 64, floor: "#34463f", accent: "#8affc1", tool: "laptop" },
+};
+const ROLE_STATION = { lead: "office", data: "mine", ml: "gym", docs: "library", ui: "workshop" };
+const SKINS = ["#f6d1a8", "#e0ac7e", "#b97a4f", "#7d4f32"];
+const STATE_COLOR = { working: "#5bd17a", idle: "#8a9bb8", done: "#f2c94c", blocked: "#ff5d5d", stale: "#b48cff" };
+
+// ---------- state ----------
+const cv = document.getElementById("game"), ctx = cv.getContext("2d");
+const agents = new Map();              // key = status file name
+let particles = [], scale = 1, conn = "connecting", firstLoad = true, selected = null;
+
+const stationOf = role => ROLE_STATION[String(role || "").trim().toLowerCase()] || "desk";
+const isStale = d => d.state === "working" && Date.now() / 1000 - d.updated > STALE_S;
+const effState = d => isStale(d) ? "stale" : d.state;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const trunc = (s, n) => s.length > n ? s.slice(0, n - 1) + "…" : s;
+function hash(s) { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
+function ago(sec) {
+  sec = Math.max(0, Math.round(sec));
+  if (sec < 60) return sec + "s";
+  if (sec < 3600) return Math.floor(sec / 60) + "m";
+  if (sec < 86400) return Math.floor(sec / 3600) + "h";
+  return Math.floor(sec / 86400) + "d";
+}
+
+// ---------- polling ----------
+async function poll() {
+  let files;
+  try {
+    const r = await fetch("status/", { cache: "no-store" });
+    if (r.status === 404) files = [];
+    else if (!r.ok) throw new Error("HTTP " + r.status);
+    else files = [...new Set([...(await r.text()).matchAll(/href="([^"?#]+\.json)"/gi)].map(m => m[1]))];
+    conn = "ok";
+  } catch (e) { conn = "down"; renderHud(); return; }
+
+  const results = await Promise.all(files.map(f =>
+    fetch("status/" + f, { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null)));
+  const now = performance.now() / 1000;
+  files.forEach((file, i) => {
+    const d = results[i];
+    if (!d || typeof d !== "object") return;       // transient read error: keep the old data
+    d.id = String(d.id ?? file.replace(/\.json$/i, ""));
+    d.name = String(d.name ?? d.id); d.role = String(d.role ?? "?"); d.task = String(d.task ?? "");
+    d.state = ["idle", "working", "done", "blocked"].includes(d.state) ? d.state : "idle";
+    d.updated = Number(d.updated) || 0;
+    let a = agents.get(file);
+    if (!a) {
+      const h = hash(d.id);
+      a = { key: file, h, seed: (h % 1000) / 97, x: TUNNEL.x, y: TUNNEL.y, tx: TUNNEL.x, ty: TUNNEL.y,
+            dir: 1, walking: false, flash: 0, snap: firstLoad, lift: 0,
+            shirt: `hsl(${h % 360},72%,58%)`, dark: `hsl(${h % 360},55%,32%)`, skin: SKINS[(h >> 9) % SKINS.length] };
+      agents.set(file, a);
+      if (!firstLoad) puff(a.x, a.y - 6, a.shirt, 12);
+    } else if (a.d.task !== d.task || a.d.state !== d.state) a.flash = now;
+    a.d = d;
+  });
+  for (const k of [...agents.keys()]) if (!files.includes(k)) agents.delete(k);
+  if (selected && !agents.has(selected)) selected = null;
+  assign();
+  firstLoad = false;
+  renderHud();
+}
+(function loop() { poll().finally(() => setTimeout(loop, POLL_MS)); })();
+
+// Work out where everyone should stand. Agents sharing a spot get spread into slots.
+function assign() {
+  const groups = {};
+  for (const a of agents.values()) {
+    const p = a.d.state === "idle" ? "bench" : a.d.state === "done" ? "endzone" : stationOf(a.d.role);
+    (groups[p] = groups[p] || []).push(a);
+    a.place = p;
+  }
+  for (const [p, list] of Object.entries(groups)) {
+    list.sort((a, b) => a.d.id.localeCompare(b.d.id));
+    const n = list.length;
+    list.forEach((a, i) => {
+      const off = i - (n - 1) / 2;
+      if (p === "bench") { a.tx = 240 + off * Math.min(42, 140 / Math.max(n - 1, 1)); a.ty = 214; a.lift = 0; }
+      else if (p === "endzone") { a.tx = 378; a.ty = 160 + off * Math.min(24, 88 / Math.max(n - 1, 1)); a.lift = 0; }
+      else {
+        const s = STATIONS[p];
+        a.tx = s.x + s.w / 2 + off * Math.min(24, (s.w - 20) / Math.max(n - 1, 1));
+        a.ty = s.y + s.h - 7; a.lift = i * 11;           // stack bubbles so they don't overlap
+      }
+      if (a.snap) { a.x = a.tx; a.y = a.ty; a.snap = false; puff(a.x, a.y - 6, a.shirt, 8); }
+    });
+  }
+}
+
+// ---------- HUD ----------
+const listEl = document.getElementById("list"), cardEl = document.getElementById("card"), sumEl = document.getElementById("summary");
+const tabsEl = document.querySelector(".tabs");
+let tab = "active";                     // "active" = not idle (working/blocked/stale/done), "bench" = idle
+try { if (localStorage.getItem("agentHqTab") === "bench") tab = "bench"; } catch (_) {}
+const ORDER = { working: 0, blocked: 1, stale: 2, idle: 3, done: 4 };
+function sortedAgents() {
+  return [...agents.values()].sort((a, b) => ORDER[effState(a.d)] - ORDER[effState(b.d)] || a.d.name.localeCompare(b.d.name));
+}
+function renderHud() {
+  const nowS = Date.now() / 1000;
+  if (conn === "down") {
+    sumEl.textContent = "offline";
+    listEl.innerHTML = `<div class="empty">Can't reach <b>status/</b>.<br><br>Serve this folder with:<br>
+      <code>python3 -m http.server 8765 -d tools/agent-hq</code></div>`;
+  } else if (!agents.size) {
+    sumEl.textContent = conn === "ok" ? "0 agents" : "connecting…";
+    listEl.innerHTML = `<div class="empty">No agents yet.<br><br>They show up when one runs<br>
+      <code>python3 tools/agent-hq/report.py …</code></div>`;
+  } else {
+    const n = [...agents.values()].filter(a => effState(a.d) === "working").length;
+    sumEl.textContent = `${agents.size} agent${agents.size > 1 ? "s" : ""} · ${n} working`;
+    const shown = sortedAgents().filter(a => (a.d.state === "idle") === (tab === "bench"));
+    listEl.innerHTML = shown.length ? "" : `<div class="empty">${tab === "bench" ? "Bench is empty" : "Nobody's working right now"}</div>`;
+    listEl.innerHTML += shown.map(a => {
+      const st = effState(a.d);
+      return `<div class="row${a.key === selected ? " sel" : ""}" data-key="${esc(a.key)}">
+        <div class="dot" style="background:${a.shirt}"></div>
+        <div><span class="name">${esc(a.d.name)}</span> <span class="role">${esc(a.d.role)}</span></div>
+        <span class="badge b-${st}">${st}</span>
+        <div class="task">${esc(a.d.task) || "<i>no task</i>"}</div>
+        <div class="ago">updated ${ago(nowS - a.d.updated)} ago</div></div>`;
+    }).join("");
+  }
+  const benched = [...agents.values()].filter(a => a.d.state === "idle").length;
+  for (const b of tabsEl.children) {
+    b.setAttribute("aria-pressed", b.dataset.tab === tab);
+    b.textContent = b.dataset.tab === "bench" ? `Bench (${benched})` : `Active (${agents.size - benched})`;
+  }
+  renderCard();
+}
+function renderCard() {
+  const a = selected && agents.get(selected);
+  cardEl.hidden = !a;
+  if (!a) return;
+  const st = effState(a.d);
+  cardEl.innerHTML = `<button aria-label="Close">✕</button>
+    <h3><span class="dot" style="background:${a.shirt};margin:0"></span>${esc(a.d.name)}</h3>
+    <div class="meta">${esc(a.d.role)} · ${esc(placeName(a))} · <span class="badge b-${st}">${st}</span></div>
+    <div class="full">${esc(a.d.task) || "<i>no task</i>"}</div>
+    <div class="meta">updated ${ago(Date.now() / 1000 - a.d.updated)} ago · id ${esc(a.d.id)}</div>`;
+}
+const placeName = a => a.place === "bench" ? "Bench" : a.place === "endzone" ? "Trophy End Zone" : STATIONS[a.place].name;
+function select(key) { selected = key; renderHud(); }
+listEl.addEventListener("click", e => { const r = e.target.closest(".row"); if (r) select(r.dataset.key === selected ? null : r.dataset.key); });
+tabsEl.addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  tab = b.dataset.tab; try { localStorage.setItem("agentHqTab", tab); } catch (_) {}
+  renderHud();
+});
+cardEl.addEventListener("click", e => { if (e.target.closest("button")) select(null); });
+setInterval(renderHud, 1000);
+
+// ---------- canvas sizing / input ----------
+function resize() {
+  const dpr = window.devicePixelRatio || 1, st = document.getElementById("stage");
+  const narrow = matchMedia("(max-width: 820px)").matches;
+  const aw = st.clientWidth - 30, ah = narrow ? innerHeight * 0.6 : st.clientHeight - 30;
+  const s = Math.min(aw * dpr / W, ah * dpr / H);
+  scale = s >= 2 ? Math.floor(s) : Math.max(0.5, s);   // integer scale keeps pixel edges sharp
+  cv.width = Math.round(W * scale); cv.height = Math.round(H * scale);
+  cv.style.width = cv.width / dpr + "px"; cv.style.height = cv.height / dpr + "px";
+}
+addEventListener("resize", resize); resize();
+function hit(e) {
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  let best = null;
+  for (const a of agents.values())
+    if (Math.abs(x - a.x) <= 6 && y >= a.y - 17 && y <= a.y + 2 && (!best || a.y > best.y)) best = a;
+  return best;
+}
+cv.addEventListener("click", e => { const a = hit(e); select(a && a.key !== selected ? a.key : null); });
+cv.addEventListener("mousemove", e => { cv.style.cursor = hit(e) ? "pointer" : "default"; });
+
+// ---------- drawing helpers ----------
+function P(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); }
+function text(s, x, y, size, color, align = "center", outline = null) {
+  ctx.font = `bold ${size}px ui-monospace, Menlo, Consolas, monospace`;
+  ctx.textAlign = align; ctx.textBaseline = "middle";
+  if (outline) { ctx.lineWidth = 1.6; ctx.strokeStyle = outline; ctx.lineJoin = "round"; ctx.strokeText(s, x, y); }
+  ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+function box(x, y, w, h, fill, border) {  // pixel box with cut corners
+  P(x + 1, y, w - 2, h, border); P(x, y + 1, w, h - 2, border);
+  P(x + 2, y + 1, w - 4, h - 2, fill); P(x + 1, y + 2, w - 2, h - 4, fill);
+}
+function puff(x, y, c, n) {
+  for (let i = 0; i < n; i++) particles.push({ x, y, vx: (Math.random() - .5) * 40, vy: (Math.random() - .8) * 40,
+    g: 40, life: .6 + Math.random() * .4, max: 1, c, s: 1 + (Math.random() < .3) });
+}
+
+// ---------- world ----------
+function drawField(t) {
+  P(0, 0, W, H, "#1f3a26");
+  for (let y = 0; y < H; y += 6) P(0, y, W, 3, "#21402a");                 // rough grass texture
+  const f = FIELD;
+  for (let i = 0; i < 12; i++) P(f.x + i * 25, f.y, 25, f.h, i % 2 ? "#3a8544" : "#3f8f4a");
+  P(f.x, f.y, 25, f.h, "#2b5fa8"); P(f.x + f.w - 25, f.y, 25, f.h, "#c9962b");
+  ctx.save(); ctx.translate(f.x + 12.5, f.y + f.h / 2); ctx.rotate(-Math.PI / 2); text("AGENT HQ", 0, 0, 9, "#ffffffcc"); ctx.restore();
+  ctx.save(); ctx.translate(f.x + f.w - 12.5, f.y + f.h / 2); ctx.rotate(Math.PI / 2); text("TROPHY ZONE", 0, 0, 8, "#5a3a00"); ctx.restore();
+  for (let i = 1; i < 12; i++) P(f.x + i * 25, f.y, 1, f.h, "#ffffffb0");      // yard lines
+  for (let x = f.x + 25; x < f.x + f.w - 25; x += 5) { P(x, f.y + 38, 1, 2, "#fff8"); P(x, f.y + f.h - 40, 1, 2, "#fff8"); }
+  ["10", "20", "30", "40", "50", "40", "30", "20", "10"].forEach((n, i) => {
+    text(n, f.x + 50 + i * 25, f.y + f.h - 9, 6, "#ffffffb0"); text(n, f.x + 50 + i * 25, f.y + 9, 6, "#ffffffb0");
+  });
+  P(f.x - 1, f.y - 1, f.w + 2, 1, "#fff"); P(f.x - 1, f.y + f.h, f.w + 2, 1, "#fff");
+  P(f.x - 1, f.y, 1, f.h, "#fff"); P(f.x + f.w, f.y, 1, f.h, "#fff");
+  // midfield football logo
+  const cx = f.x + f.w / 2, cy = f.y + f.h / 2;
+  ctx.fillStyle = "#8a4b22"; ctx.beginPath(); ctx.ellipse(cx, cy, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
+  P(cx - 6, cy - 1, 12, 1, "#fff"); for (let i = -4; i <= 4; i += 2) P(cx + i, cy - 2, 1, 3, "#fff");
+  // trophy in the end zone
+  const tx = f.x + f.w - 13, ty = f.y + 14, glint = Math.sin(t * 3) > .7;
+  P(tx - 4, ty, 9, 5, "#ffd23f"); P(tx - 3, ty + 5, 7, 1, "#e0b020"); P(tx, ty + 6, 1, 3, "#e0b020"); P(tx - 3, ty + 9, 7, 2, "#7a5410");
+  P(tx - 6, ty + 1, 2, 3, "#ffd23f"); P(tx + 5, ty + 1, 2, 3, "#ffd23f"); if (glint) P(tx - 2, ty + 1, 1, 2, "#fff");
+  // bench + cooler on the sideline
+  P(165, 210, 150, 3, "#8b5a2b"); P(165, 213, 150, 1, "#5a3a1a");
+  for (let x = 170; x < 315; x += 36) P(x, 214, 2, 3, "#5a3a1a");
+  text("BENCH", 240, 222, 5, "#ffffff70");
+  P(322, 205, 7, 9, "#f28c28"); P(322, 205, 7, 2, "#fff"); P(323, 210, 5, 1, "#c96a10");
+  // tunnel (new agents enter here)
+  P(18, 132, 44, 40, "#120e1c"); P(22, 128, 36, 4, "#120e1c"); P(18, 132, 44, 2, "#3a3456");
+  P(26, 140, 28, 32, "#000"); text("TUNNEL", 40, 126, 5, "#ffffff80");
+  drawScoreboard(t);
+}
+function drawScoreboard(t) {
+  const x = 398, y = 98, c = { working: 0, idle: 0, done: 0, blocked: 0, stale: 0 };
+  for (const a of agents.values()) c[effState(a.d)]++;
+  P(x, y, 76, 92, "#000"); P(x + 2, y + 2, 72, 88, "#151022"); P(x + 34, y + 92, 8, 14, "#333");
+  text("SCOREBOARD", x + 38, y + 9, 6, "#ffd23f");
+  [["WORK", c.working, "working"], ["STUCK", c.blocked, "blocked"], ["NAPS", c.stale, "stale"],
+   ["BENCH", c.idle, "idle"], ["DONE", c.done, "done"]].forEach(([label, n, k], i) => {
+    text(label, x + 7, y + 22 + i * 11, 6, "#c8c0e0", "left");
+    text(String(n).padStart(2, "0"), x + 67, y + 22 + i * 11, 7, STATE_COLOR[k], "right");
+  });
+  const d = new Date();
+  text(`${String(d.getHours()).padStart(2, "0")}${t % 1 < .5 ? ":" : " "}${String(d.getMinutes()).padStart(2, "0")}`, x + 38, y + 82, 7, "#ff6b6b");
+}
+function drawStation(key, s, t) {
+  const top = s.y < FIELD.y, cx = s.x + s.w / 2;
+  P(s.x, s.y, s.w, s.h, "#0d0a14"); P(s.x + 2, s.y + 2, s.w - 4, s.h - 4, s.floor);
+  for (let yy = s.y + 2; yy < s.y + s.h - 2; yy += 8)
+    for (let xx = s.x + 2 + ((yy / 8) % 2) * 8; xx < s.x + s.w - 2; xx += 16) P(xx, yy, Math.min(8, s.x + s.w - 2 - xx), Math.min(8, s.y + s.h - 2 - yy), "#ffffff08");
+  P(cx - 9, top ? s.y + s.h - 2 : s.y, 18, 2, s.floor);                       // doorway toward the field
+  const sw = s.name.length * 4 + 10;
+  box(cx - sw / 2, s.y + (top ? 3 : 4), sw, 10, "#1c1828", "#000");
+  text(s.name.toUpperCase(), cx, s.y + (top ? 8 : 9), 6, s.accent);
+  const x = s.x, y = s.y + (top ? 16 : 17);
+  DECO[key](x, y, s, t);
+}
+const BOOK_COLORS = ["#e05a5a", "#5ab0e0", "#e0c05a", "#7ad07a", "#c07ae0", "#e09a5a"];
+const DECO = {
+  office(x, y, s, t) {
+    box(x + 8, y, 44, 22, "#f4f4f4", "#555");                               // whiteboard with a play drawn on it
+    for (let i = 0; i < 3; i++) { text("O", x + 16 + i * 8, y + 14, 6, "#2b5fa8"); }
+    text("X", x + 20, y + 6, 6, "#d33"); text("X", x + 36, y + 6, 6, "#d33");
+    P(x + 22, y + 9, 10, 1, "#d33"); P(x + 31, y + 7, 1, 3, "#d33");
+    P(x + 92, y + 8, 36, 8, "#7a4e2a"); P(x + 94, y + 16, 2, 6, "#5a3a1a"); P(x + 124, y + 16, 2, 6, "#5a3a1a");
+    P(x + 100, y + 4, 8, 5, "#222"); P(x + 101, y + 5, 6, 3, Math.sin(t * 2) > 0 ? "#6cf" : "#5be");
+    P(x + 116, y + 5, 3, 3, "#fff"); P(x + 117, y + 3, 1, 2, "#999");          // coffee mug
+    P(x + 64, y + 2, 6, 8, "#3a7a3a"); P(x + 62, y + 4, 10, 4, "#4a9a4a"); P(x + 65, y + 10, 4, 4, "#a0522d");
+  },
+  mine(x, y, s, t) {
+    P(x + 4, y - 4, s.w - 8, 14, "#2a2420");
+    for (let i = 0; i < 9; i++) {
+      const gx = x + 10 + i * 14, gy = y - 1 + (i * 7) % 8, on = Math.sin(t * 3 + i * 1.7) > .6;
+      P(gx, gy, 3, 3, on ? "#fff" : ["#7fe3ff", "#ff7fd1", "#9dff7f"][i % 3]);
+    }
+    P(x + 8, y + 26, s.w - 16, 1, "#777"); P(x + 8, y + 29, s.w - 16, 1, "#777");   // rails
+    const cartX = x + 20 + Math.round((Math.sin(t * .4) * .5 + .5) * 80);
+    P(cartX, y + 18, 16, 9, "#6b6b78"); P(cartX + 1, y + 16, 14, 3, "#7fe3ff");
+    P(cartX + 2, y + 27, 3, 3, "#222"); P(cartX + 11, y + 27, 3, 3, "#222");
+  },
+  gym(x, y, s, t) {
+    P(x + 8, y + 2, 36, 3, "#555"); for (let i = 0; i < 4; i++) { P(x + 10 + i * 8, y, 2, 7, "#222"); P(x + 9 + i * 8, y + 7, 4, 3, "#777"); }
+    P(x + 96, y + 4, 32, 14, "#222"); P(x + 98, y + 6, 28, 10, "#3a3a3a");      // treadmill
+    for (let i = 0; i < 4; i++) P(x + 98 + ((i * 7 + Math.floor(t * 20)) % 28), y + 6, 1, 10, "#555");
+    P(x + 124, y - 2, 4, 6, "#222"); P(x + 124, y - 3, 4, 2, "#ff8a5c");
+    P(x + 58, y + 2, 20, 12, "#c33"); P(x + 60, y + 4, 16, 8, "#e44"); text("BDB", x + 68, y + 8, 5, "#fff");  // punching bag-ish sign
+  },
+  library(x, y, s, t) {
+    for (let shelf = 0; shelf < 2; shelf++) {
+      const sx = x + 8 + shelf * 84;
+      P(sx, y - 2, 40, 24, "#4a2e1a");
+      for (let row = 0; row < 2; row++) for (let i = 0; i < 9; i++)
+        P(sx + 2 + i * 4, y + row * 11 + (i % 3 === 0 ? 1 : 0), 3, 9 - (i % 3 === 0 ? 1 : 0), BOOK_COLORS[(i + row * 2 + shelf) % 6]);
+    }
+    P(x + 56, y + 8, 24, 6, "#7a4e2a"); P(x + 64, y + 4, 8, 4, "#fff"); P(x + 68, y + 4, 1, 4, "#ccc");
+    if (Math.sin(t * 2) > .5) P(x + 76, y + 2, 1, 1, "#ffe9a0");             // candle flicker
+    P(x + 75, y + 4, 3, 4, "#eee");
+  },
+  workshop(x, y, s, t) {
+    P(x + 8, y + 8, 50, 6, "#8b5a2b"); P(x + 10, y + 14, 3, 6, "#5a3a1a"); P(x + 53, y + 14, 3, 6, "#5a3a1a");
+    P(x + 14, y + 5, 10, 3, "#888"); P(x + 30, y + 4, 2, 4, "#c33"); P(x + 40, y + 6, 8, 2, "#ffd23f");
+    for (let g = 0; g < 2; g++) {                                            // spinning gears
+      const gx = x + 96 + g * 18, gy = y + 6 + g * 6, a = t * (g ? -2 : 2);
+      for (let k = 0; k < 6; k++) P(Math.round(gx + Math.cos(a + k) * 6) - 1, Math.round(gy + Math.sin(a + k) * 6) - 1, 3, 3, "#9aa");
+      P(gx - 4, gy - 4, 8, 8, "#9aa"); P(gx - 1, gy - 1, 2, 2, s.floor);
+    }
+  },
+  desk(x, y, s, t) {
+    for (let i = 0; i < 3; i++) {
+      const dx = x + 12 + i * 42;
+      P(dx, y + 8, 26, 5, "#6b5a4a"); P(dx + 7, y, 12, 8, "#222");
+      P(dx + 8, y + 1, 10, 6, ["#8affc1", "#7fbfff", "#ffd27f"][(i + Math.floor(t * 1.5)) % 3]);
+      P(dx + 12, y + 8, 2, 1, "#444");
+    }
+  },
+};
+
+// ---------- characters ----------
+function drawAgent(a, t) {
+  const d = a.d, st = effState(d), tool = (STATIONS[a.place] || {}).tool;
+  const pose = a.walking ? "walk" : st === "idle" ? "sit" : st === "stale" ? "sit"
+    : st === "done" ? "jump" : st === "blocked" ? "stand" : "work";
+  const bx = Math.round(a.x), by = Math.round(a.y);
+  let oy = 0;
+  if (pose === "jump") { const ph = (t + a.seed) % 2.4; oy = ph < 1.2 ? -Math.round(Math.abs(Math.sin(ph / .6 * Math.PI)) * 6) : 0; }
+  if (pose === "work" && tool !== "dumbbell") oy = Math.sin(t * 8 + a.seed) > 0 ? -1 : 0;
+  if (selected === a.key) {                                                 // selection ring
+    ctx.strokeStyle = Math.sin(t * 6) > 0 ? "#ffd23f" : "#fff"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(bx + .5, by, 7, 3, 0, 0, Math.PI * 2); ctx.stroke();
+  }
+  P(bx - 4, by - 1, 9, 2, "#0006");
+  const y = by + oy, sit = pose === "sit", pants = "#2a2a3a";
+  const step = pose === "walk" ? Math.floor(t * 8 + a.seed) % 2 : -1;
+  if (sit) { P(bx - 3, y - 3, 3, 2, pants); P(bx + 1, y - 3, 3, 2, pants); }
+  else { P(bx - 3, y - 4 - (step === 1 ? 1 : 0), 2, 4, pants); P(bx + 1, y - 4 - (step === 0 ? 1 : 0), 2, 4, pants); }
+  const bodyY = sit ? y - 8 : y - 9;
+  P(bx - 4, bodyY, 9, 2, a.shirt); P(bx - 3, bodyY + 2, 7, 3, a.shirt);     // jersey with shoulder pads
+  P(bx - 1, bodyY + 2, 3, 1, "#ffffffaa");
+  if (pose === "jump" || (pose === "work" && tool === "dumbbell")) { P(bx - 5, bodyY - 3, 1, 4, a.skin); P(bx + 5, bodyY - 3, 1, 4, a.skin); }
+  else { P(bx - 5, bodyY + 1, 1, 3, a.skin); P(bx + 5, bodyY + 1, 1, 3, a.skin); }
+  const hy = bodyY - 5;                                                    // head + helmet
+  P(bx - 2, hy, 5, 5, a.skin); P(bx - 2, hy - 1, 5, 2, a.dark); P(bx - 3, hy, 1, 3, a.dark); P(bx + 3, hy, 1, 3, a.dark);
+  const blink = (t + a.seed) % 4 < .12 || st === "stale";
+  if (blink) P(bx - 1, hy + 2, 3, 1, "#3a2a2a");
+  else { P(bx - 1 + (a.dir > 0 && a.walking ? 1 : 0), hy + 2, 1, 1, "#1a1a1a"); P(bx + 1 + (a.dir > 0 && a.walking ? 1 : 0), hy + 2, 1, 1, "#1a1a1a"); }
+  if (pose === "work") drawTool(tool, a, bx, bodyY, t);
+  if (pose === "work") {                                                   // progress shimmer under feet
+    P(bx - 6, by + 2, 13, 2, "#0008");
+    const sx = Math.floor(((t * .7 + a.seed) % 1) * 11);
+    P(bx - 6, by + 2, 13, 2, a.dark); P(bx - 6 + sx, by + 2, 3, 2, "#fff");
+  }
+  if (st === "done" && !a.walking) { box(bx + 5, hy - 4, 7, 7, "#5bd17a", "#000"); text("✓", bx + 8.5, hy - .5, 5, "#fff"); }
+  if (st === "blocked") {
+    const jy = Math.sin(t * 6) > 0 ? -1 : 0;
+    box(bx + 5, hy - 6 + jy, 6, 9, "#ff3b3b", "#000"); text("!", bx + 8, hy - 1.5 + jy, 7, "#fff");
+  }
+  return hy;
+}
+function drawTool(tool, a, bx, bodyY, t) {
+  const sw = Math.sin(t * 7 + a.seed), hx = bx + (a.dir < 0 ? -5 : 5), hy = bodyY + 3;
+  if (tool === "pick" || tool === "hammer") {
+    ctx.save(); ctx.translate(hx + .5, hy); ctx.scale(a.dir < 0 ? -1 : 1, 1); ctx.rotate(-.2 + (sw * .5 + .5) * 1.5);
+    P(0, -8, 1, 8, "#8b5a2b");
+    if (tool === "pick") { P(-3, -9, 7, 1, "#c8d0dc"); P(-4, -8, 1, 1, "#c8d0dc"); P(4, -8, 1, 1, "#c8d0dc"); }
+    else P(-1, -10, 4, 3, "#555");
+    ctx.restore();
+    if (sw > .97 && Math.random() < .5) puff(hx + (a.dir < 0 ? -6 : 6), hy + 4, tool === "pick" ? "#7fe3ff" : "#ffd23f", 3);
+  } else if (tool === "dumbbell") {
+    const yy = bodyY - (sw > 0 ? 4 : 1);
+    P(bx - 6, yy, 13, 1, "#bbb"); P(bx - 7, yy - 1, 2, 3, "#333"); P(bx + 6, yy - 1, 2, 3, "#333");
+  } else if (tool === "book") {
+    P(bx - 4, bodyY + 2, 9, 4, "#7b3fa0"); P(bx - 3, bodyY + 2, 3, 3, "#fff"); P(bx + 1, bodyY + 2, 3, 3, "#fff");
+    if ((t + a.seed) % 1.6 < .3) P(bx, bodyY + 1, 1, 4, "#eee");
+  } else if (tool === "clipboard") {
+    P(hx - 1, bodyY + 1, 4, 5, "#a0703c"); P(hx, bodyY + 2, 2, 3, "#fff");
+    if (sw > .9 && Math.random() < .3) puff(bx, bodyY - 8, "#ffcf6b", 2);
+  } else {
+    P(bx - 4, bodyY + 3, 9, 3, "#333"); P(bx - 3, bodyY + 3, 7, 1, Math.sin(t * 10) > 0 ? "#8affc1" : "#5ad1a0");
+  }
+}
+function drawBubble(a, headY, t) {
+  const st = effState(a.d);
+  let label, fill = "#fff8e7", border = "#000", ink = "#2a2238";
+  const age = performance.now() / 1000 - a.flash, pop = age < 1.2 ? 1 - age / 1.2 : 0;
+  if (a.walking && st !== "blocked") return;
+  if (st === "done" && age > 4) return;                                  // done: just the ✓ badge once the news is out
+  if (st === "idle") label = "…";
+  else if (st === "stale") { label = "zzz"; fill = "#e6dcff"; ink = "#5a3fa0"; }
+  else if (st === "blocked") { label = "! " + trunc(a.d.task || "blocked", 28); fill = "#ffd6d6"; border = "#b00"; ink = "#7a0000"; }
+  else if (st === "done") { label = "✓ done!"; fill = "#e9ffe0"; ink = "#1f5a1f"; }
+  else label = trunc(a.d.task || "working…", 28);
+  if (pop > 0) border = Math.floor(age * 10) % 2 ? "#ffd23f" : border;
+  ctx.font = "bold 5px ui-monospace, Menlo, Consolas, monospace";
+  const w = Math.ceil(ctx.measureText(label).width) + 8, h = 9;
+  const bottom = headY - 9 - a.lift, cx = Math.round(a.x);
+  const x = Math.round(clamp(cx - w / 2, 2, W - w - 2)), y = bottom - h;
+  ctx.save();
+  if (pop > 0) { const k = 1 + Math.sin(pop * Math.PI) * .35; ctx.translate(cx, bottom); ctx.scale(k, k); ctx.translate(-cx, -bottom); }
+  box(x, y, w, h, fill, border);
+  P(cx - 1, bottom - 1, 3, 1, fill); P(cx, bottom, 1, 1, border); P(cx - 1, bottom - 1, 1, 1, border); P(cx + 1, bottom - 1, 1, 1, border);
+  text(label, x + w / 2, y + h / 2 + .5, 5, ink);
+  ctx.restore();
+}
+
+// ---------- main loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000), t = now / 1000; last = now;
+  for (const a of agents.values()) {
+    const dx = a.tx - a.x, dy = a.ty - a.y, dist = Math.hypot(dx, dy);
+    // blocked agents freeze where they are; everyone else walks to their spot
+    if (dist > .6 && a.d.state !== "blocked") {
+      const s = Math.min(dist, SPEED * dt);
+      a.x += dx / dist * s; a.y += dy / dist * s; a.walking = true;
+      if (Math.abs(dx) > .3) a.dir = dx < 0 ? -1 : 1;
+      if (Math.random() < dt * 6) particles.push({ x: a.x, y: a.y, vx: -a.dir * 6, vy: -4, g: 0, life: .4, max: .4, c: "#c8b89a", s: 1 });
+    } else {
+      a.walking = false;
+      const st = effState(a.d);
+      if (st === "done" && Math.random() < dt * 5)
+        particles.push({ x: a.x + (Math.random() - .5) * 16, y: a.y - 22, vx: (Math.random() - .5) * 20, vy: -10, g: 30, life: 1.4, max: 1.4, c: BOOK_COLORS[Math.floor(Math.random() * 6)], s: 2 });
+      if (st === "stale" && Math.random() < dt * 1.2)
+        particles.push({ x: a.x + 4, y: a.y - 16, vx: 5, vy: -8, g: 0, life: 2, max: 2, c: "#d8c8ff", z: true });
+      if (st === "working" && Math.random() < dt * 1.5) puff(a.x + (Math.random() - .5) * 14, a.y - 18, "#ffffff", 1);
+    }
+  }
+  particles = particles.filter(p => (p.life -= dt) > 0).slice(-400);
+  for (const p of particles) { p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  drawField(t);
+  for (const [k, s] of Object.entries(STATIONS)) drawStation(k, s, t);
+  const list = [...agents.values()].sort((a, b) => a.y - b.y);
+  const heads = new Map(list.map(a => [a, drawAgent(a, t)]));
+  for (const p of particles) {
+    ctx.globalAlpha = clamp(p.life / p.max, 0, 1);
+    if (p.z) text("z", p.x, p.y, 5, p.c); else P(Math.round(p.x), Math.round(p.y), p.s, p.s, p.c);
+  }
+  ctx.globalAlpha = 1;
+  for (const a of list) {                                                  // name labels, then bubbles on top
+    const hy = heads.get(a);
+    text(trunc(a.d.name, 16), Math.round(a.x) + .5, hy - 5, 5, "#fff", "center", "#000");
+  }
+  for (const a of list) drawBubble(a, heads.get(a), t);
+  if (!agents.size) {
+    box(W / 2 - 90, H / 2 - 16, 180, 32, "#1c1828", "#000");
+    text(conn === "down" ? "Can't reach status/ — is the server up?" : "No agents yet", W / 2, H / 2 - 4, 7, "#ffd23f");
+    text(conn === "down" ? "python3 -m http.server 8765 -d tools/agent-hq" : "Waiting for someone to report in…", W / 2, H / 2 + 7, 5, "#c8c0e0");
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
