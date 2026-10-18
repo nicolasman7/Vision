@@ -59,6 +59,13 @@ The handoff between "vision" (first four stages) and "football" (last two) is a 
 | `scripts/` | CLI entry points: download, train, evaluate, export |
 | `tests/` | Python tests for `pipeline/` (Swift tests live in the Xcode project) |
 | `docs/` | Docs; `PROGRESS.md` is the user's learning log |
+| `tools/agent-hq/` | Agent HQ: live game dashboard of subagents (`report.py` writes status, `index.html` shows it) |
+
+## Agent team
+
+The user wants Claude to act as **lead ("Coach")** and delegate to labeled, narrow-niche subagents, shown live in Agent HQ. Every subagent reports progress with:
+`python3 tools/agent-hq/report.py <id> "<Name>" "<Role>" <working|done|blocked|idle> "<task>"`
+Roles map to game stations: Lead, Data, ML, Docs, UI (others get a generic desk). Current roster: `lead` Coach (Lead), `wrangler` Data Wrangler (Data), `modeler` Modeler (ML), `teacher` Teacher (Docs), `gamedev` Game Dev (UI). Agents that finish aren't deleted: they go back on the **bench** (`idle`, "On the bench: …") as reserves, and the lead reuses an existing agent before creating a new one with an overlapping niche. The lead reviews every subagent's output (runs tests, spot-checks) before handing off to the next. View the game: `python3 -m http.server 8765 -d tools/agent-hq`, then open http://localhost:8765.
 
 ## Key decisions and reasoning
 
@@ -81,17 +88,25 @@ The handoff between "vision" (first four stages) and "football" (last two) is a 
 - Minimum iOS version; whether macOS is a target.
 - Labeled football detection data source (public datasets vs. hand-labeling).
 - Exact prediction targets and buckets for "direction" and "depth".
+- Where the app gets game situation (down, distance, clock, score): scorebug OCR vs. user input. The run/pass model depends on it heavily.
 
 ## Current state
 
-_As of 2026-10-17 (session 2)_
+_As of 2026-10-17 (session 3)_
 
-- Project structure and docs created. `git init` done; **no commits yet**.
-- Python env: **uv**, Python 3.12 pinned (`.python-version`). Deps: kaggle, pandas, pyarrow. Run things with `uv run`.
-- Data: nflverse 2022 play-by-play in `data/raw/nflverse/`. BDB 2025 (`nfl-big-data-bowl-2025`, 2022 season weeks 1–9) **not downloaded yet**; waiting on the user's Kaggle token and rule acceptance. `scripts/download_data.sh` fetches both.
-- Plan: prediction stage first (BDB pre-snap positions as input, nflverse labels as targets). No modeling code yet.
+- `git init` done; **no commits yet**.
+- Python env: **uv**, Python 3.12 pinned. Deps: kaggle, pandas, pyarrow, scikit-learn; dev: pytest. Run with `uv run`; tests with `uv run pytest` (4 passing).
+- Data: nflverse 2022 play-by-play + participation (formation/personnel) in `data/raw/nflverse/`. BDB 2025 **not downloaded**; still waiting on the user's Kaggle token and rule acceptance. `scripts/download_data.sh` fetches everything.
+- Prediction stage v1 (nflverse only, no x/y positions): `uv run python -m scripts.build_dataset` → `data/processed/plays_2022.parquet` (35,193 plays); `uv run python -m scripts.train_prediction` → `models/*.joblib` + `models/metrics_2022.json`. Run/pass 75.2% on weeks 15–22 (always-pass 59.4%, situation-only 70.7%), well calibrated. Direction has no skill (40.1% vs 40.2%).
+- Agent HQ dashboard: see "Agent team".
 
 ## Session log
+
+### 2026-10-17: Agent team + first play predictor
+- **Done:** Set up a lead + subagent workflow and the Agent HQ status system. Data Wrangler built `pipeline/prediction/dataset.py`, `scripts/build_dataset.py`, and tests (label = `qb_dropback` intent; drops no_play/2-pt/aborted; parses personnel; `off_ol` defaults to 5). Modeler built `pipeline/prediction/model.py`, `scripts/train_prediction.py`, and tests (time split by week ≤14 vs >14; HistGradientBoosting; isotonic calibration tried, made it worse, not used). Teacher wrote the PROGRESS.md entry. Game Dev built `tools/agent-hq/index.html`.
+- **Changed:** Pivoted v1 inputs from BDB x/y positions to nflverse participation (formation/personnel labels), so no Kaggle signup was needed. Added scikit-learn and pytest.
+- **Broken/unresolved:** Direction has no skill without real positions (needs BDB tracking or vision output). The model leans on down/distance/clock/score, which vision can't see (new open question). Only one season. Nothing committed.
+- **Left off:** The user decides next. Options: BDB positions for direction, more seasons, depth buckets, or starting the vision side.
 
 ### 2026-10-17: uv environment + nflverse data
 - **Done:** `uv init --bare`, Python 3.12 pinned, added kaggle/pandas/pyarrow. Downloaded nflverse `play_by_play_2022.parquet` (49,434 plays × 372 cols; 20,393 pass, 15,037 run; has `run_location`, `run_gap`, `pass_location`, `air_yards`). Wrote `scripts/download_data.sh`.
