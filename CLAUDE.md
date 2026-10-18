@@ -78,20 +78,26 @@ The handoff between "vision" (first four stages) and "football" (last two) is a 
 
 ## Open questions (not decided yet)
 
-- Python environment/package manager (uv, conda, venv).
 - Minimum iOS version; whether macOS is a target.
 - Labeled football detection data source (public datasets vs. hand-labeling).
 - Exact prediction targets and buckets for "direction" and "depth".
 
 ## Current state
 
-_As of 2026-10-17_
+_As of 2026-10-17 (session 2)_
 
 - Project structure and docs created. `git init` done; **no commits yet**.
-- No code, no environment, no dependencies, no data downloaded.
-- Next step: up to the user.
+- Python env: **uv**, Python 3.12 pinned (`.python-version`). Deps: kaggle, pandas, pyarrow. Run things with `uv run`.
+- Data: nflverse 2022 play-by-play in `data/raw/nflverse/`. BDB 2025 (`nfl-big-data-bowl-2025`, 2022 season weeks 1–9) **not downloaded yet**; waiting on the user's Kaggle token and rule acceptance. `scripts/download_data.sh` fetches both.
+- Plan: prediction stage first (BDB pre-snap positions as input, nflverse labels as targets). No modeling code yet.
 
 ## Session log
+
+### 2026-10-17: uv environment + nflverse data
+- **Done:** `uv init --bare`, Python 3.12 pinned, added kaggle/pandas/pyarrow. Downloaded nflverse `play_by_play_2022.parquet` (49,434 plays × 372 cols; 20,393 pass, 15,037 run; has `run_location`, `run_gap`, `pass_location`, `air_yards`). Wrote `scripts/download_data.sh`.
+- **Changed:** New `pyproject.toml`, `uv.lock`, `.python-version`, `scripts/download_data.sh`. Settled the open question on the Python env manager (uv).
+- **Broken/unresolved:** BDB 2025 needs the user to accept the competition rules and put an API token in `~/.kaggle/kaggle.json` (never read that file). Nothing committed.
+- **Left off:** Once the token exists, run `bash scripts/download_data.sh`, then explore and join BDB plays with nflverse on (gameId, playId) ↔ (old_game_id, play_id).
 
 ### 2026-10-17: Project setup
 - **Done:** Created folder layout (`pipeline/` with 7 stage sub-folders, `data/`, `models/`, `coreml/`, `app/`, `notebooks/`, `scripts/`, `tests/`, `docs/`), a README in each top-level folder, root README, `.gitignore`, this file, and `docs/PROGRESS.md`. Ran `git init`.

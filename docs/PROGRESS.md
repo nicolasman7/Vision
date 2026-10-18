@@ -10,7 +10,49 @@ gantt
 
     section Setup
     Project structure and docs :done, setup, 2026-10-17, 1d
+    Python environment (uv)    :done, env, 2026-10-17, 1d
+
+    section Data
+    nflverse play-by-play 2022 :done, nflv, 2026-10-17, 1d
+    Big Data Bowl 2025 download :active, bdb, 2026-10-17, 1d
 ```
+
+---
+
+## 2026-10-17: Python environment and first data
+
+### What was done
+- Set up the Python environment with **uv**, pinned to Python 3.12. Packages so far: `kaggle` (downloads datasets), `pandas` (tables), `pyarrow` (reads `.parquet` files).
+- Downloaded **nflverse play-by-play for the 2022 season** (49,434 plays) into `data/raw/nflverse/`.
+- Wrote `scripts/download_data.sh`, one command that re-downloads all the raw data.
+- **Big Data Bowl 2025 is not downloaded yet.** It needs your Kaggle account (steps below).
+
+### Why it was needed
+We're building the prediction stage first because it has free labels. Two datasets cover the same 2022 games:
+
+| Dataset | What it gives us | Role |
+|---|---|---|
+| Big Data Bowl 2025 (Kaggle) | Every player's (x, y) position 10 times per second, including **before the snap** | The **input**: what the formation looked like |
+| nflverse play-by-play | What happened on every play: run/pass, `run_location` (left/middle/right), `run_gap`, `pass_location`, `air_yards` (how far the ball was thrown) | The **labels**: the answers the model learns to predict |
+
+Example: in one play the tracking data shows a shotgun formation with 3 receivers to the right. The play-by-play row says `play_type = pass`, `pass_location = right`, `air_yards = 14`. Join the two by game and play ID and you have one training example. With about 8,000 such plays, no hand-labeling is needed.
+
+### Concepts worth understanding
+
+**1. uv and the lockfile.**
+`pyproject.toml` lists the packages we asked for, such as "pandas 3 or newer". `uv.lock` records the *exact* version of every package that got installed, including packages pulled in by other packages. That makes the environment reproducible: same lockfile, same environment, on any machine. To run anything, use `uv run <command>`. It uses the project's environment automatically, so there's no "activate the venv" step.
+
+**2. Why Python 3.12 and not your system's 3.14?**
+Libraries with compiled code, like PyTorch and coremltools, publish builds for each Python version, and they usually trail new Python releases by months. 3.12 is the safe choice everything supports.
+
+**3. Parquet vs CSV.**
+Parquet stores a table column by column, compressed. The 2022 play-by-play has 372 columns. As CSV it would be several times bigger and slower to load. Parquet also remembers each column's type, so numbers come back as numbers and not text.
+
+### What you need to do (Kaggle)
+1. Create an account at kaggle.com, or sign in.
+2. Open kaggle.com/competitions/nfl-big-data-bowl-2025, go to the **Data** tab, and click **"I Understand and Accept"** on the rules. The download is refused until you do this.
+3. Go to kaggle.com/settings, find **API**, and click **Create New Token**. Save the downloaded `kaggle.json` to `~/.kaggle/kaggle.json`, then run `chmod 600 ~/.kaggle/kaggle.json` so only you can read it.
+4. Run `bash scripts/download_data.sh` (or ask Claude to run it).
 
 ---
 

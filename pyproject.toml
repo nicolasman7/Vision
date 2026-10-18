@@ -1,0 +1,9 @@
+[project]
+name = "vision"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "kaggle>=2.2.4",
+    "pandas>=3.0.6",
+    "pyarrow>=26.0.0",
+]
