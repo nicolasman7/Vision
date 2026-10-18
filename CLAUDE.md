@@ -60,9 +60,12 @@ The handoff between "vision" (first four stages) and "football" (last two) is a 
 | `tests/` | Python tests for `pipeline/` (Swift tests live in the Xcode project) |
 | `docs/` | Docs; `PROGRESS.md` is the user's learning log |
 | `docs/research/` | Option docs for the user's pending decisions (agents recommend, the user decides) |
-| `tools/agent-hq/` | Agent HQ: live game dashboard of subagents (`report.py` writes status, `index.html` shows it) |
+| `tools/agent-hq/` | Agent HQ: live game dashboard of subagents (`report.py` writes status + activity log, `index.html` shows it, `logs/` = activity JSONL + per-round summaries) |
+| `AGENT_TEAM.md` | Portable playbook for running an agent team + dashboard in any project |
 
 ## Agent team
+
+Full, portable playbook: @AGENT_TEAM.md (dashboard first, Strategist, phases, bench, logs). Project specifics:
 
 The user wants Claude to act as **lead ("Coach")** and delegate to labeled, narrow-niche subagents, shown live in Agent HQ. Every subagent reports progress with:
 `python3 tools/agent-hq/report.py <id> "<Name>" "<Role>" <working|done|blocked|idle> "<task>"`
@@ -93,9 +96,10 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 
 ## Current state
 
-_As of 2026-10-18 (session 4)_
+_As of 2026-10-18 (session 5)_
 
-- `git init` done; **no commits yet**. A pre-round-2 code backup tarball was made in the session scratchpad (temporary).
+- Git: private GitHub repo `nicolasman7/Vision` (remote `origin`, branch `main`). History rebuilt as backdated commits, one per agent per round (setup → env → round 1 → round 2), then this session's commit. Only push when the user says so in that message.
+- Logs: `report.py` appends every status update to `tools/agent-hq/logs/activity-YYYY-MM-DD.jsonl` (committed); the lead writes `tools/agent-hq/logs/rounds/round-N.md` after each round (rounds 1–2 were written after the fact).
 - Python env: **uv**, Python 3.12. Deps: kaggle, pandas, pyarrow, scikit-learn, opencv-python-headless, numpy; dev: pytest. `uv run pytest` → 14 passing.
 - Data: nflverse pbp + participation 2016–2025 and FTN charting 2022–2025 in `data/raw/nflverse/` (~224 MB). BDB 2025 **not downloaded** (needs the user's Kaggle token); `bash scripts/download_data.sh --bdb` runs that part.
 - Prediction: `scripts.build_dataset` → `data/processed/plays_<year>.parquet` + `plays_2016_2025.parquet` (342,499 plays, 45 cols; era-specific columns documented in `dataset.py`). `scripts.train_prediction` = original 2022 model (75.2%). `scripts.experiments_prediction` = E1–E5 → `models/metrics_multiseason.json`, `models/run_pass_multiseason.joblib` (2025 test: 76.2% vs 60.4% always-pass). `scripts.analyze_buckets` → `models/metrics_buckets.json`. Direction has no real skill without x/y.
@@ -103,6 +107,12 @@ _As of 2026-10-18 (session 4)_
 - Agent HQ: see "Agent team". Bench: wrangler, modeler, teacher, gamedev, strategist, surveyor, scout, bucketeer.
 
 ## Session log
+
+### 2026-10-18: Playbook, logs, GitHub repo
+- **Done:** Wrote `AGENT_TEAM.md` (portable playbook: themed dashboard first, status protocol with full `report.py`, dashboard spec, round workflow, bench, constraints, brief template, logs). `report.py` now also appends to a daily activity log. Wrote round logs for rounds 1–2. Rebuilt git history as 14 backdated commits (per agent, real file timestamps; early CLAUDE.md/PROGRESS.md versions reconstructed from the session, uv.lock for the first env commit regenerated with `--exclude-newer`), added this session's commit, created the private repo `nicolasman7/Vision`, pushed `main` (user asked).
+- **Changed:** `CLAUDE.md` imports `@AGENT_TEAM.md`. Logs are committed; `status/` stays ignored.
+- **Broken/unresolved:** Nothing broken. Same items waiting on the user as round 2 (decisions, Kaggle token, footage, heavy deps).
+- **Left off:** Ready for round 3 once the user gives decisions.
 
 ### 2026-10-18: Round 2 (Strategist + 6 agents)
 - **Done:** Strategist (Plan agent) designed a 3-phase plan. Phase 1: Data Wrangler extended the data to 2016–2025 + FTN (era harmonization, FTN leak ban with a test); Field Surveyor built field_mapping v0 + error budget; Film Scout wrote the detection-data and situation-source docs. Phase 2: Modeler ran E1–E5 (added `season_split`, `corrupt_category`, `shift_count`, `ERA_FEATURES`; additions only); Bucket Scout compared direction/depth bucket schemes. Phase 3: Teacher wrote the PROGRESS entry and filled the E4 section of situation_source.md. Coach added OpenCV, the "Vision Lab" station (role `vision`), Active/Bench tabs (via Game Dev), and reviewed every handoff.

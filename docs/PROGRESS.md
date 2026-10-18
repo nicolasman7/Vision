@@ -32,7 +32,28 @@ gantt
     section Tooling
     Agent team + Agent HQ dashboard :done, hq, 2026-10-17, 1d
     Round 2 agent team (Strategist + 6) :done, team2, 2026-10-17, 1d
+    Agent playbook, logs, GitHub repo :done, repo, 2026-10-18, 1d
 ```
+
+---
+
+## 2026-10-18: Agent playbook, logs, and the GitHub repo
+
+### What was done
+- **`AGENT_TEAM.md`**: a portable playbook you can drop into any project. It tells Claude to build a dashboard themed on *that* project first, then run a Strategist and a team of labeled agents, with the bench, phases and logs exactly like here.
+- **Logs**: every status update an agent sends is now also appended to `tools/agent-hq/logs/activity-<date>.jsonl`. After each round the lead writes a one-page summary in `tools/agent-hq/logs/rounds/`.
+- **GitHub**: the project now lives in a private repo, `nicolasman7/Vision`. Instead of one giant commit, the history has one commit per agent per round, dated when the work actually happened.
+
+### Concepts worth understanding
+
+**1. A commit is a snapshot, and its date is just metadata.**
+Git stores each commit as "the full state of the tracked files, plus who, when, and why." The date is a field you can set (`GIT_AUTHOR_DATE`). So we rebuilt each step's snapshot (for example, "Round 1 · Modeler" contains exactly the files Modeler wrote) and stamped it with the time on the files. Where an old version of a file no longer existed (early `CLAUDE.md` and `PROGRESS.md`), it was rebuilt from the session record. The round 1 snapshot was re-run to make sure its tests still pass.
+
+**2. Why commit per agent?**
+The same reason you'd keep separate schematic revisions per subsystem: if something breaks later, `git log` tells you which agent changed which file and when, and `git revert` can undo just that piece.
+
+**3. What gets pushed and what doesn't.**
+`.gitignore` keeps out data (copyrighted and huge), trained models (regenerable), the live dashboard status (changes every second) and secrets. The largest file in the whole repo history is the 200 KB lockfile.
 
 ---
 
