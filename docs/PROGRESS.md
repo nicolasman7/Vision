@@ -34,11 +34,77 @@ gantt
     section Research
     Detection data + situation source docs :done, research, 2026-10-17, 1d
 
+    section App
+    iOS app shell (SwiftUI + Core ML) :done, app, 2026-10-19, 1d
+
     section Tooling
     Agent team + Agent HQ dashboard :done, hq, 2026-10-17, 1d
     Round 2 agent team (Strategist + 6) :done, team2, 2026-10-17, 1d
     Agent playbook, logs, GitHub repo :done, repo, 2026-10-18, 1d
 ```
+
+---
+
+## 2026-10-19: The iPhone app shell
+
+### What was done
+The first iPhone app is built: a SwiftUI app in `app/` that runs the round 3 predictor on the device. You type in what you know, and it shows run vs pass, which way a run goes, and how deep a throw goes.
+- **The project:** iOS 17+, iPhone only, portrait, Swift 5 mode. XcodeGen generates the Xcode project from `app/project.yml`. The generated `Vision.xcodeproj` is git-ignored.
+- **What ships inside the app:** the three Core ML models (`run_pass`, `direction`, `depth`) and `predictor_schema.json`.
+- **The input panel:** every control has a "?" state meaning "unknown". Personnel has quick presets: 11, 12, 21, 13, 10 and 22. The first digit is running backs and the second is tight ends, so "12" = 1 RB, 2 TE.
+- **The result card:**
+  - a strength label: **Lean** below 60%, **Likely** at 60–75%, **Strong** above 75%
+  - bars for run direction (left/middle/right) and pass depth (≤0 / 1–9 / 10+ yd)
+  - the note "About 12% of dropbacks end in a sack or scramble (no throw)"
+- **Parity check:** 21 test scenarios, written by `scripts/make_app_fixtures.py`, from "nothing known" to "3rd & 9 shotgun empty". On macOS, the Swift predictor matches Python to within **1.1e-16** on all of them. **The same test then passed on the iPhone Simulator** (iPhone 18 Pro, iOS 27.1): 2 tests, 0 failures. The app also launched there, and with no inputs it shows 62% pass, the same as Python.
+
+### Why it was needed
+Everything so far has run in Python on the Mac. The goal is an on-device iPhone app, so this is the first time the model runs where it's meant to live. Building the shell now, with typed-in inputs, proves the Core ML side works before vision is connected. Later, vision fills in the same fields the user types today.
+
+### How it fits
+```
+[ input panel (user) ]      ┐
+[ vision stages (later) ]   ┴→ PlayInputs → PlayPredictor (3 Core ML models) → PlayPrediction → result card
+```
+`PlayPredictor` reads the feature order from `predictor_schema.json`. It never hard-codes that order, so if the schema changes, the app follows.
+
+### Concepts worth understanding
+
+**1. The app bundle.**
+An iOS app is a folder (`Vision.app`) holding the compiled code plus every file it needs at run time. Xcode compiles each `.mlmodel` into a `.mlmodelc` folder inside the bundle, and `predictor_schema.json` is copied in as-is. The app loads them with `Bundle.main.url(forResource:)`, much like reading a file from the program's own install folder. That's why the app works offline: everything it needs travels with it.
+
+**2. MLMultiArray, and why "unknown" is NaN, not 0.**
+Core ML takes the inputs as an `MLMultiArray`: a typed array of numbers, here 28 doubles in the schema's order. A missing input must be **NaN**, because 0 is a real value. `down = 0` doesn't mean "I don't know the down". It would be read as an actual input the model never saw in training. The trees learned a separate branch for missing values, and only NaN takes that branch. Example: if you leave the formation at "?", all three formation columns become NaN. Choose "shotgun" and they become 1, 0, 0.
+- **Derived inputs** are filled in only when everything they depend on is known. For example, "game seconds remaining" is computed only when both the quarter and the quarter clock are set. Otherwise it stays NaN.
+
+**3. Contract-first parallel work.**
+Before anyone wrote code, Coach defined three Swift types:
+- `PlayInputs`: what's known, with `nil` meaning unknown
+- `PlayPrediction`: the three sets of probabilities
+- `PlayPredictor`: the object that turns one into the other
+
+That let three agents build at the same time without waiting for each other. The screens could be built against `PlayPrediction` before the predictor existed. (ECE parallel: agree on the bus protocol first, then the CPU team and the peripheral team can design their boards separately and still plug together.)
+
+**4. XcodeGen vs a hand-edited Xcode project.**
+An `.xcodeproj` is a large, machine-written file. Two people (or two agents) editing it at once produce merge conflicts that are painful to fix. With XcodeGen, the source of truth is about 50 readable lines of `project.yml` (targets, iOS version, which files to bundle). `xcodegen generate` rebuilds the project from it. So only the short file is committed, and the generated project can always be thrown away and rebuilt.
+
+**5. Signing: free Apple ID vs a paid account.**
+iPhones only run apps signed by a known developer.
+- **Free Apple ID:** you can install on your own phone from Xcode, but the signature **expires after 7 days**. After that, you just run it from Xcode again.
+- **Paid Apple Developer account (yearly fee):** gives longer-lived signatures, TestFlight, and the App Store.
+
+For personal use, the free route is enough. `DEVELOPMENT_TEAM` is left blank in `project.yml`, so you pick your own Team in Xcode. `app/README.md` has the steps, including turning on Developer Mode on the phone.
+
+### Who did the work
+Three agents built it in parallel, against the contract above:
+- **App Architect:** the project spec and the app entry point.
+- **Model Bridge:** the Swift predictor (schema-driven feature order, NaN for unknowns, derived inputs) and the 21 parity fixtures.
+- **Game Dev:** the input panel and the result card.
+
+### Honest limitations
+- **Inputs are typed in by hand.** No camera or video yet.
+- **Parity is confirmed on macOS and the iPhone Simulator**, but the app hasn't been run on a real phone yet.
+- **The test scenarios are hand-picked**, not a sweep of real plays.
 
 ---
 

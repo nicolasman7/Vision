@@ -100,7 +100,7 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 
 ## Current state
 
-_As of 2026-10-18 (session 6, round 3)_
+_As of 2026-10-19 (session 7, round 4)_
 
 - Git: private GitHub repo `nicolasman7/Vision` (remote `origin`, branch `main`). History rebuilt as backdated commits, one per agent per round (setup → env → round 1 → round 2), then this session's commit. Only push when the user says so in that message.
 - Logs: `report.py` appends every status update to `tools/agent-hq/logs/activity-YYYY-MM-DD.jsonl` (committed); the lead writes `tools/agent-hq/logs/rounds/round-N.md` after each round (rounds 1–2 were written after the fact).
@@ -111,6 +111,17 @@ _As of 2026-10-18 (session 6, round 3)_
 - Agent HQ: see "Agent team". Bench: wrangler, modeler, teacher, gamedev, strategist, surveyor, scout, bucketeer.
 
 ## Session log
+
+### 2026-10-19: Round 4 (iPhone app shell)
+- **Done:**
+  - XcodeGen project (`app/project.yml`; the generated `app/*.xcodeproj` and `app/build/` are git-ignored). iOS 17+, iPhone only, portrait, Swift 5 mode; it bundles `coreml/*.mlmodel` plus the schema.
+  - Model Bridge: `app/Vision/Prediction/` (PlayInputs/PlayPrediction/PlayPredictor; feature order from the schema, NaN for unknown) and 21 parity fixtures from `scripts/make_app_fixtures.py`.
+  - Game Dev: `app/Vision/UI/` (input panel with "?" states and personnel presets; result card).
+  - App Architect: the project and `app/README.md`.
+  - XCTest passes on the iPhone 18 Pro Simulator (iOS 27.1). The app launches and its no-input prediction matches Python (62% pass).
+- **Changed:** Xcode 27.1 (license accepted by the user), the iOS Simulator runtime downloaded, xcodegen installed via brew.
+- **Broken/unresolved:** Not yet on a real iPhone (needs the user's Apple ID Team in Xcode). The minimum iOS version is defaulted to 17 and still open. No camera/video in the app yet.
+- **Left off:** waiting for the user to approve the round-4 commits. Next: run on the user's phone, then camera/video input.
 
 ### 2026-10-18: Round 3 (predictor v3, Core ML, first vision on real clips)
 - **Done:**

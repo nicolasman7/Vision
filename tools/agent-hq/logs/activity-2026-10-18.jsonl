@@ -84,3 +84,30 @@
 {"time": "2026-10-18T02:06:51-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "done", "task": "Round 3 docs done", "updated": 1792303611.019246}
 {"time": "2026-10-18T02:06:51-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "On the bench: ready for docs jobs", "updated": 1792303611.042559}
 {"time": "2026-10-18T02:07:21-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: round 3 done, repo public", "updated": 1792303641.721966}
+{"time": "2026-10-18T22:51:11-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 4: app shell, checking Xcode", "updated": 1792378271.018647}
+{"time": "2026-10-18T23:16:56-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Getting briefed: Xcode project", "updated": 1792379816.734188}
+{"time": "2026-10-18T23:16:56-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "Getting briefed: Core ML in Swift", "updated": 1792379816.759748}
+{"time": "2026-10-18T23:16:56-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Getting briefed: app screens", "updated": 1792379816.784352}
+{"time": "2026-10-18T23:16:56-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "Waiting for the app round to finish", "updated": 1792379816.808544}
+{"time": "2026-10-18T23:16:56-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 4: launching app team; downloading iOS Simulator", "updated": 1792379816.833556}
+{"time": "2026-10-18T23:18:07-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Reading project layout", "updated": 1792379887.5469198}
+{"time": "2026-10-18T23:18:07-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "Reading schema + Python predictor", "updated": 1792379887.735929}
+{"time": "2026-10-18T23:18:08-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Reading app layout + Prediction API", "updated": 1792379888.8499599}
+{"time": "2026-10-18T23:18:18-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Writing project.yml + app entry", "updated": 1792379898.418279}
+{"time": "2026-10-18T23:18:24-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "API types written; coding PlayPredictor", "updated": 1792379904.1274738}
+{"time": "2026-10-18T23:18:36-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Writing SwiftUI result card + input panel", "updated": 1792379916.592173}
+{"time": "2026-10-18T23:18:36-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Generating project + Simulator build", "updated": 1792379916.773247}
+{"time": "2026-10-18T23:18:56-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "Writing parity fixtures script", "updated": 1792379936.8864598}
+{"time": "2026-10-18T23:19:01-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "done", "task": "Vision app builds for Simulator (iOS 17)", "updated": 1792379941.040342}
+{"time": "2026-10-18T23:19:01-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792379941.065716}
+{"time": "2026-10-18T23:19:23-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "21 fixtures written; writing XCTest", "updated": 1792379963.852406}
+{"time": "2026-10-18T23:19:28-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Waiting on Model Bridge, then xcodebuild", "updated": 1792379968.6578581}
+{"time": "2026-10-18T23:19:43-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "Building app + tests with xcodebuild", "updated": 1792379983.863102}
+{"time": "2026-10-18T23:20:17-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "done", "task": "SwiftUI screens built, xcodebuild green", "updated": 1792380017.626258}
+{"time": "2026-10-18T23:20:17-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792380017.6558878}
+{"time": "2026-10-18T23:20:18-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "UI file blocks build; parity check on macOS", "updated": 1792380018.674537}
+{"time": "2026-10-18T23:20:27-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "working", "task": "macOS parity 1e-16 on 21; retrying iOS build", "updated": 1792380027.473686}
+{"time": "2026-10-18T23:20:34-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "done", "task": "Swift parity 1e-16 on 21 fixtures; iOS build OK", "updated": 1792380034.527833}
+{"time": "2026-10-18T23:20:34-0400", "id": "bridge", "name": "Model Bridge", "role": "ML", "state": "idle", "task": "On the bench: ready for Swift/Core ML jobs", "updated": 1792380034.5542731}
+{"time": "2026-10-18T23:21:03-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Reviewing: full app + tests build", "updated": 1792380063.287732}
+{"time": "2026-10-18T23:21:21-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Round 4: reading app sources", "updated": 1792380081.6315908}

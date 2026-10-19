@@ -1,0 +1,457 @@
+[
+ {
+  "name": "nothing known",
+  "inputs": {},
+  "p_pass": 0.621094641083734,
+  "direction": {
+   "left": 0.36190080956882703,
+   "middle": 0.28223344487792346,
+   "right": 0.35586574555324957
+  },
+  "depth": {
+   "<=0": 0.2028598048791296,
+   "1-9": 0.4596328739164608,
+   "10+": 0.33750732120440957
+  }
+ },
+ {
+  "name": "3rd & 9 shotgun empty",
+  "inputs": {
+   "down": 3,
+   "ydstogo": 9,
+   "yardline100": 55,
+   "formationFamily": "shotgun",
+   "isEmpty": true,
+   "backfieldCount": 0,
+   "offOL": 5,
+   "offRB": 0,
+   "offTE": 1,
+   "offWR": 4
+  },
+  "p_pass": 0.9838162639918848,
+  "direction": {
+   "left": 0.35647482209395037,
+   "middle": 0.37962500317555536,
+   "right": 0.2639001747304944
+  },
+  "depth": {
+   "<=0": 0.13629044890147066,
+   "1-9": 0.3797509716976852,
+   "10+": 0.483958579400844
+  }
+ },
+ {
+  "name": "1st & 1 under center, 3 TE",
+  "inputs": {
+   "down": 1,
+   "ydstogo": 1,
+   "yardline100": 1,
+   "formationFamily": "under_center",
+   "isEmpty": false,
+   "backfieldCount": 2,
+   "offOL": 5,
+   "offRB": 1,
+   "offTE": 3,
+   "offWR": 1,
+   "defDL": 4,
+   "defLB": 4,
+   "defDB": 3,
+   "box": 8
+  },
+  "p_pass": 0.2004841613554682,
+  "direction": {
+   "left": 0.26681374287325743,
+   "middle": 0.46601890403010005,
+   "right": 0.2671673530966425
+  },
+  "depth": {
+   "<=0": 0.2546958075050999,
+   "1-9": 0.7451587687671857,
+   "10+": 0.00014542372771438384
+  }
+ },
+ {
+  "name": "red zone 2nd & 6",
+  "inputs": {
+   "down": 2,
+   "ydstogo": 6,
+   "yardline100": 12,
+   "qtr": 2,
+   "quarterSecondsRemaining": 300,
+   "formationFamily": "shotgun",
+   "offRB": 1,
+   "offTE": 1,
+   "offWR": 3
+  },
+  "p_pass": 0.6330915335239846,
+  "direction": {
+   "left": 0.3075177037303352,
+   "middle": 0.40136579947130974,
+   "right": 0.2911164967983551
+  },
+  "depth": {
+   "<=0": 0.259665888786477,
+   "1-9": 0.4194430913764823,
+   "10+": 0.3208910198370406
+  }
+ },
+ {
+  "name": "goal to go 1st & 8",
+  "inputs": {
+   "down": 1,
+   "ydstogo": 8,
+   "yardline100": 8
+  },
+  "p_pass": 0.40402355233386084,
+  "direction": {
+   "left": 0.33290583570807175,
+   "middle": 0.33005764046085884,
+   "right": 0.33703652383106936
+  },
+  "depth": {
+   "<=0": 0.24128780122034882,
+   "1-9": 0.758550014952684,
+   "10+": 0.00016218382696719951
+  }
+ },
+ {
+  "name": "only formation: pistol",
+  "inputs": {
+   "formationFamily": "pistol"
+  },
+  "p_pass": 0.4250432641835877,
+  "direction": {
+   "left": 0.37649723862117207,
+   "middle": 0.23781656895575534,
+   "right": 0.3856861924230726
+  },
+  "depth": {
+   "<=0": 0.3274581120662828,
+   "1-9": 0.3368764703741378,
+   "10+": 0.3356654175595795
+  }
+ },
+ {
+  "name": "only formation: under center",
+  "inputs": {
+   "formationFamily": "under_center"
+  },
+  "p_pass": 0.3996111205921924,
+  "direction": {
+   "left": 0.35913525879503866,
+   "middle": 0.2659417953875913,
+   "right": 0.37492294581736996
+  },
+  "depth": {
+   "<=0": 0.23531599684979068,
+   "1-9": 0.37804921980918266,
+   "10+": 0.38663478334102663
+  }
+ },
+ {
+  "name": "only down/distance 2nd & 10",
+  "inputs": {
+   "down": 2,
+   "ydstogo": 10
+  },
+  "p_pass": 0.6522941581357692,
+  "direction": {
+   "left": 0.37056172145732463,
+   "middle": 0.2665101658024265,
+   "right": 0.3629281127402489
+  },
+  "depth": {
+   "<=0": 0.2235584385123386,
+   "1-9": 0.4474740418638353,
+   "10+": 0.32896751962382614
+  }
+ },
+ {
+  "name": "only down/distance 3rd & 2",
+  "inputs": {
+   "down": 3,
+   "ydstogo": 2
+  },
+  "p_pass": 0.6831822714818143,
+  "direction": {
+   "left": 0.34600964316453875,
+   "middle": 0.31791202982917266,
+   "right": 0.33607832700628865
+  },
+  "depth": {
+   "<=0": 0.16201516639579774,
+   "1-9": 0.5933401331297032,
+   "10+": 0.24464470047449902
+  }
+ },
+ {
+  "name": "hash left, shotgun",
+  "inputs": {
+   "hash": "L",
+   "formationFamily": "shotgun"
+  },
+  "p_pass": 0.6966114196447465,
+  "direction": {
+   "left": 0.37502585276987555,
+   "middle": 0.3551566480494918,
+   "right": 0.2698174991806326
+  },
+  "depth": {
+   "<=0": 0.20632131347606106,
+   "1-9": 0.4715927399532661,
+   "10+": 0.3220859465706728
+  }
+ },
+ {
+  "name": "hash middle only",
+  "inputs": {
+   "hash": "M"
+  },
+  "p_pass": 0.621094641083734,
+  "direction": {
+   "left": 0.37474776517735026,
+   "middle": 0.3023977719683452,
+   "right": 0.3228544628543045
+  },
+  "depth": {
+   "<=0": 0.2078676424542516,
+   "1-9": 0.4736861133639404,
+   "10+": 0.31844624418180795
+  }
+ },
+ {
+  "name": "hash right, heavy",
+  "inputs": {
+   "hash": "R",
+   "formationFamily": "under_center",
+   "isEmpty": false,
+   "backfieldCount": 2,
+   "offOL": 5,
+   "offRB": 1,
+   "offTE": 3,
+   "offWR": 1,
+   "defDL": 4,
+   "defLB": 4,
+   "defDB": 3,
+   "box": 8
+  },
+  "p_pass": 0.21574222358683814,
+  "direction": {
+   "left": 0.39873951766289745,
+   "middle": 0.265190264284783,
+   "right": 0.33607021805231957
+  },
+  "depth": {
+   "<=0": 0.2398270281067726,
+   "1-9": 0.3870408074081229,
+   "10+": 0.37313216448510456
+  }
+ },
+ {
+  "name": "2-minute drill trailing",
+  "inputs": {
+   "down": 1,
+   "ydstogo": 10,
+   "yardline100": 70,
+   "qtr": 4,
+   "quarterSecondsRemaining": 110,
+   "scoreDifferential": -6,
+   "posteamTimeouts": 1,
+   "defteamTimeouts": 3,
+   "noHuddle": true,
+   "formationFamily": "shotgun"
+  },
+  "p_pass": 0.9320103631038322,
+  "direction": {
+   "left": 0.2511339675323319,
+   "middle": 0.37874214376401316,
+   "right": 0.3701238887036548
+  },
+  "depth": {
+   "<=0": 0.1510579472039677,
+   "1-9": 0.47476772130692835,
+   "10+": 0.3741743314891039
+  }
+ },
+ {
+  "name": "4th quarter kneel-down lead",
+  "inputs": {
+   "down": 1,
+   "ydstogo": 10,
+   "yardline100": 40,
+   "qtr": 4,
+   "quarterSecondsRemaining": 90,
+   "scoreDifferential": 10,
+   "posteamTimeouts": 3,
+   "defteamTimeouts": 0
+  },
+  "p_pass": 0.2570242597324677,
+  "direction": {
+   "left": 0.3467545129315159,
+   "middle": 0.30658011519288914,
+   "right": 0.34666537187559493
+  },
+  "depth": {
+   "<=0": 0.23229721039441287,
+   "1-9": 0.4521071758906211,
+   "10+": 0.315595613714966
+  }
+ },
+ {
+  "name": "Q1 opening drive",
+  "inputs": {
+   "down": 1,
+   "ydstogo": 10,
+   "yardline100": 75,
+   "qtr": 1,
+   "quarterSecondsRemaining": 900,
+   "scoreDifferential": 0,
+   "posteamTimeouts": 3,
+   "defteamTimeouts": 3
+  },
+  "p_pass": 0.4522317050200904,
+  "direction": {
+   "left": 0.34348019306105093,
+   "middle": 0.26913350552306,
+   "right": 0.38738630141588914
+  },
+  "depth": {
+   "<=0": 0.2772072469822355,
+   "1-9": 0.4683976040028491,
+   "10+": 0.2543951490149155
+  }
+ },
+ {
+  "name": "Q3 only clock (no qtr)",
+  "inputs": {
+   "quarterSecondsRemaining": 600
+  },
+  "p_pass": 0.619625290204222,
+  "direction": {
+   "left": 0.33360617060578396,
+   "middle": 0.2945154795444131,
+   "right": 0.37187834984980295
+  },
+  "depth": {
+   "<=0": 0.2028759200017176,
+   "1-9": 0.4652147153292915,
+   "10+": 0.33190936466899085
+  }
+ },
+ {
+  "name": "only qtr",
+  "inputs": {
+   "qtr": 3
+  },
+  "p_pass": 0.6193846268819175,
+  "direction": {
+   "left": 0.36190080956882703,
+   "middle": 0.28223344487792346,
+   "right": 0.35586574555324957
+  },
+  "depth": {
+   "<=0": 0.2028598048791296,
+   "1-9": 0.4596328739164608,
+   "10+": 0.33750732120440957
+  }
+ },
+ {
+  "name": "overtime",
+  "inputs": {
+   "down": 2,
+   "ydstogo": 7,
+   "yardline100": 35,
+   "qtr": 5,
+   "quarterSecondsRemaining": 400
+  },
+  "p_pass": 0.7272795770496085,
+  "direction": {
+   "left": 0.3760272648659621,
+   "middle": 0.2841132904880214,
+   "right": 0.3398594446460164
+  },
+  "depth": {
+   "<=0": 0.3134786934348417,
+   "1-9": 0.4251316878640881,
+   "10+": 0.2613896187010702
+  }
+ },
+ {
+  "name": "personnel only 11",
+  "inputs": {
+   "offOL": 5,
+   "offRB": 1,
+   "offTE": 1,
+   "offWR": 3,
+   "defDL": 4,
+   "defLB": 2,
+   "defDB": 5
+  },
+  "p_pass": 0.6387027907349969,
+  "direction": {
+   "left": 0.3689407306804169,
+   "middle": 0.27558500015952964,
+   "right": 0.3554742691600534
+  },
+  "depth": {
+   "<=0": 0.2098266061449614,
+   "1-9": 0.4683250682505079,
+   "10+": 0.32184832560453075
+  }
+ },
+ {
+  "name": "box 6 + no huddle",
+  "inputs": {
+   "box": 6,
+   "noHuddle": true
+  },
+  "p_pass": 0.6452781074680563,
+  "direction": {
+   "left": 0.3701889702521401,
+   "middle": 0.3023146229090823,
+   "right": 0.32749640683877757
+  },
+  "depth": {
+   "<=0": 0.17630162344656383,
+   "1-9": 0.47210311086319634,
+   "10+": 0.3515952656902397
+  }
+ },
+ {
+  "name": "everything known",
+  "inputs": {
+   "down": 3,
+   "ydstogo": 4,
+   "yardline100": 33,
+   "qtr": 2,
+   "quarterSecondsRemaining": 45,
+   "scoreDifferential": 3,
+   "posteamTimeouts": 2,
+   "defteamTimeouts": 1,
+   "noHuddle": false,
+   "formationFamily": "shotgun",
+   "isEmpty": false,
+   "backfieldCount": 1,
+   "offOL": 5,
+   "offRB": 1,
+   "offTE": 1,
+   "offWR": 3,
+   "defDL": 4,
+   "defLB": 2,
+   "defDB": 5,
+   "box": 6,
+   "hash": "L"
+  },
+  "p_pass": 0.9356964569734307,
+  "direction": {
+   "left": 0.3806582283094957,
+   "middle": 0.35572667347954806,
+   "right": 0.26361509821095636
+  },
+  "depth": {
+   "<=0": 0.18699631650475068,
+   "1-9": 0.49240168585383015,
+   "10+": 0.3206019976414191
+  }
+ }
+]
