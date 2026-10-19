@@ -88,3 +88,41 @@
 {"time": "2026-10-19T01:34:12-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "idle", "task": "On the bench: ready for history/data jobs", "updated": 1792388052.72666}
 {"time": "2026-10-19T01:34:12-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "idle", "task": "On the bench: ready for data jobs", "updated": 1792388052.754774}
 {"time": "2026-10-19T01:34:12-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: v2 ready, awaiting user OK", "updated": 1792388052.780374}
+{"time": "2026-10-19T01:47:53-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Simulating on-device learning", "updated": 1792388873.290838}
+{"time": "2026-10-19T01:47:53-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "working", "task": "Getting briefed: on-device learning", "updated": 1792388873.31865}
+{"time": "2026-10-19T01:47:53-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Getting briefed: guess-reveal-learn UI", "updated": 1792388873.343877}
+{"time": "2026-10-19T01:47:53-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 6: self-learning feature", "updated": 1792388873.369525}
+{"time": "2026-10-19T01:47:56-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "working", "task": "Reading predictor code", "updated": 1792388876.392576}
+{"time": "2026-10-19T01:47:56-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Guess \u2192 reveal \u2192 learn: reading Learner API", "updated": 1792388876.5204601}
+{"time": "2026-10-19T01:48:17-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Online learner: reading spec + data", "updated": 1792388897.998872}
+{"time": "2026-10-19T01:48:26-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "working", "task": "Writing OnlineLearner + MissExplainer", "updated": 1792388906.837612}
+{"time": "2026-10-19T01:48:55-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Simulating 16 configs x 3 cases", "updated": 1792388935.189141}
+{"time": "2026-10-19T01:49:06-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Reveal flow written; waiting on Learner", "updated": 1792388946.012824}
+{"time": "2026-10-19T01:49:15-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Building + testing reveal flow", "updated": 1792388955.92962}
+{"time": "2026-10-19T01:49:19-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "working", "task": "Checking chosen config + fixtures", "updated": 1792388959.24839}
+{"time": "2026-10-19T01:49:25-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "working", "task": "Building + running LearnerTests", "updated": 1792388965.314191}
+{"time": "2026-10-19T01:49:31-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "done", "task": "Online layer: ~0 at 50-200 plays, -0.003 LL long run", "updated": 1792388971.0034828}
+{"time": "2026-10-19T01:49:31-0400", "id": "modeler", "name": "Modeler", "role": "ML", "state": "idle", "task": "On the bench: ready for prediction-model jobs", "updated": 1792388971.034561}
+{"time": "2026-10-19T01:49:45-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "done", "task": "Guess \u2192 reveal \u2192 learn built; tests pass", "updated": 1792388985.6060429}
+{"time": "2026-10-19T01:49:45-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "idle", "task": "On the bench: ready for history/data jobs", "updated": 1792388985.663935}
+{"time": "2026-10-19T01:50:26-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "working", "task": "Replaying Modeler's 30-play fixture", "updated": 1792389026.636826}
+{"time": "2026-10-19T01:50:41-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "done", "task": "10/10 VisionTests pass; replay matches Python", "updated": 1792389041.649121}
+{"time": "2026-10-19T01:50:41-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "idle", "task": "On the bench: ready for on-device learning jobs", "updated": 1792389041.674638}
+{"time": "2026-10-19T01:51:38-0400", "id": "learner", "name": "Learner", "role": "ML", "state": "idle", "task": "On the bench: ready for on-device learning jobs", "updated": 1792389098.971051}
+{"time": "2026-10-19T01:51:38-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "idle", "task": "On the bench: ready for history/data jobs", "updated": 1792389098.995741}
+{"time": "2026-10-19T01:51:39-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: learning feature ready, awaiting user", "updated": 1792389099.019413}
+{"time": "2026-10-19T01:54:19-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "Writing CHANGELOG + model-improvement doc", "updated": 1792389259.3042738}
+{"time": "2026-10-19T01:54:19-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Stamping app version 3.0", "updated": 1792389259.32992}
+{"time": "2026-10-19T01:54:19-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "appv3: docs, version, commit", "updated": 1792389259.359426}
+{"time": "2026-10-19T01:54:22-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "appv3 docs: reading sources", "updated": 1792389262.793754}
+{"time": "2026-10-19T01:54:24-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Bumping app version to 3.0 (3)", "updated": 1792389264.187665}
+{"time": "2026-10-19T01:54:32-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "appv3 docs: reading online sim", "updated": 1792389272.7076201}
+{"time": "2026-10-19T01:54:35-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "done", "task": "App version 3.0 (3), build OK", "updated": 1792389275.259087}
+{"time": "2026-10-19T01:54:35-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792389275.287675}
+{"time": "2026-10-19T01:54:44-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "appv3 docs: reading app learner", "updated": 1792389284.7106402}
+{"time": "2026-10-19T01:55:50-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "working", "task": "appv3 docs: PROGRESS entries", "updated": 1792389350.793685}
+{"time": "2026-10-19T01:56:37-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "done", "task": "Changelog + model log + PROGRESS done", "updated": 1792389397.319078}
+{"time": "2026-10-19T01:56:37-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "On the bench: ready for docs jobs", "updated": 1792389397.350249}
+{"time": "2026-10-19T01:56:47-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "On the bench: ready for docs jobs", "updated": 1792389407.890568}
+{"time": "2026-10-19T01:56:47-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792389407.9208052}
+{"time": "2026-10-19T01:56:47-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: appv3 pushed", "updated": 1792389407.9492018}

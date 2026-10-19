@@ -10,6 +10,7 @@
 4. **Never commit videos, datasets, or model weights.** NFL footage is copyrighted (personal use only). Check `git status` before any commit.
 5. `docs/PROGRESS.md` is written **for the user** (4th-year ECE student who wants to understand the project). The Gantt chart shows only things that are done or in progress, never future plans. Use real dates. Explain each concept simply, with a concrete example.
 6. Don't build ahead of what's asked. The user decides when each stage starts.
+7. **Every version change** (app `appvN` or model): add a dated entry to `docs/CHANGELOG.md` (Added / Changed / Fixed / Known limitations), bump `MARKETING_VERSION` in `app/project.yml`, log any model-improvement attempt in `docs/research/model_improvement.md`, and commit as `appvN`.
 
 ## Goal
 
@@ -100,7 +101,7 @@ Roles map to game stations: Lead → Office, Data → Data Mine, ML → Training
 
 ## Current state
 
-_As of 2026-10-19 (session 7, round 4)_
+_As of 2026-10-19 (session 7, app v3)_
 
 - Git: private GitHub repo `nicolasman7/Vision` (remote `origin`, branch `main`). History rebuilt as backdated commits, one per agent per round (setup → env → round 1 → round 2), then this session's commit. Only push when the user says so in that message.
 - Logs: `report.py` appends every status update to `tools/agent-hq/logs/activity-YYYY-MM-DD.jsonl` (committed); the lead writes `tools/agent-hq/logs/rounds/round-N.md` after each round (rounds 1–2 were written after the fact).
@@ -111,6 +112,22 @@ _As of 2026-10-19 (session 7, round 4)_
 - Agent HQ: see "Agent team". Bench: wrangler, modeler, teacher, gamedev, strategist, surveyor, scout, bucketeer.
 
 ## Session log
+
+### 2026-10-19: Rounds 5–6 (app v2 and v3)
+- **Done:**
+  - **v2:** Apple Sports-style redesign (Game Dev); Live/Record/Upload camera with on-device YOLO (Lens; Spotter exported `coreml/yolo_detector.mlpackage`); Play lookup over a 342k-play SQLite DB (Data Wrangler built `coreml/history.sqlite` via `scripts/build_history_db.py`; Historian built `app/Vision/History/`); defense inputs; a checkmark root-cause fix with a UI test (`app/VisionUITests/`).
+  - **v3:** guess → reveal → learn. An online logistic correction layer on top of the frozen tree model (Learner, `app/Vision/Learning/`); "Why it missed" factors; a learning card. Modeler's simulation (`scripts/simulate_online_learning.py`) showed ~0 gain for 50–200 plays and −0.003 log loss over 69k plays, so lr 0.003, l2 0 ships as a safe default.
+  - Docs: `docs/CHANGELOG.md` and `docs/research/model_improvement.md`. Standing rule 7 added.
+- **Changed:**
+  - numpy pinned ≤2.3.5 (coremltools).
+  - The dashboard moved to port 8770 (8765 is another project).
+  - Tabs: Live / Predict / History / Settings.
+  - App version 3.0.
+- **Broken/unresolved:**
+  - The unselected tab-label colors can't follow the accent (iOS 27 floating tab bar); the user accepted this.
+  - Live camera and recording are untested on a real phone.
+  - Formation isn't read from video yet.
+- **Left off:** pushed appv3. Next candidates: retrain the main model including 2024, test on the user's iPhone, and formation from video.
 
 ### 2026-10-19: Round 4 (iPhone app shell)
 - **Done:**

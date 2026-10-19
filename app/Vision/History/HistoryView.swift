@@ -20,6 +20,9 @@ struct HistoryView: View {
 
     @State private var play: HistoryPlay?
     @State private var notFound = false
+    @State private var outcome: LearnOutcome?   // set when the current play was revealed (and learned) in this visit
+    @State private var confirmReset = false
+    @ObservedObject private var learner = OnlineLearner.shared
 
     var body: some View {
         NavigationStack {
@@ -30,6 +33,7 @@ struct HistoryView: View {
                         ContentUnavailableView("Play history not available", systemImage: "externaldrive.badge.xmark",
                                                description: Text(loadError))
                     } else {
+                        learningCard
                         finder
                         if let play { result(play) }
                         else if notFound {
@@ -108,10 +112,53 @@ struct HistoryView: View {
         }
     }
 
+    // MARK: Learning card
+
+    private var learningCard: some View {
+        let s = learner.stats
+        return VStack(spacing: 8) {
+            SectionLabel("Learning")
+            VStack(alignment: .leading, spacing: 6) {
+                if s.learned == 0 {
+                    Text("Reveal unseen plays to teach the model.").font(.headline)
+                    Text("Each guess is scored before it learns, so the numbers stay honest.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                } else {
+                    Text("Learned from \(s.learned) play\(s.learned == 1 ? "" : "s") · Base \(Self.pct1(s.baseAccuracy)) → Adjusted \(Self.pct1(s.adjustedAccuracy))")
+                        .font(.headline).monospacedDigit()
+                    Text(String(format: "Log loss %.3f → %.3f (lower is better)", s.baseLogLoss, s.adjustedLogLoss))
+                        .font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                    Button("Reset learning", role: .destructive) { confirmReset = true }
+                        .font(.footnote.weight(.semibold))
+                        .confirmationDialog("Forget everything learned from revealed plays?",
+                                            isPresented: $confirmReset, titleVisibility: .visible) {
+                            Button("Reset learning", role: .destructive) { learner.reset() }
+                        }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+    }
+
     // MARK: Result
+
+    private enum Mode { case training, learned, unseen }
+
+    private func mode(_ play: HistoryPlay) -> Mode {
+        if play.inTraining { return .training }
+        // A play revealed in this visit stays in "unseen" mode so its before-learning verdicts remain visible.
+        if outcome == nil, learner.hasLearned(gameId: play.gameID, playId: play.playID) { return .learned }
+        return .unseen
+    }
 
     private func result(_ play: HistoryPlay) -> some View {
         let prediction = try? predictor?.predict(play.inputs)
+        let mode = mode(play)
+        let shown = mode != .unseen || outcome != nil
+        // Before reveal: the learner's live value. After reveal: the value it had before learning this play.
+        let adjusted = outcome?.adjustedP ?? (mode == .unseen ? prediction.map { learner.adjustedPPass(base: $0, inputs: play.inputs) } : nil)
         return VStack(spacing: 22) {
             VStack(spacing: 8) {
                 SectionLabel("Situation")
@@ -122,7 +169,7 @@ struct HistoryView: View {
                                  play.inputs.hash.map { "\($0.label) hash" }].compactMap { $0 }
                     Text(lines.isEmpty ? "No formation data" : lines.joined(separator: "\n"))
                         .font(.subheadline).foregroundStyle(.secondary)
-                    badge(play.inTraining)
+                    badge(mode)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
@@ -131,23 +178,43 @@ struct HistoryView: View {
 
             VStack(spacing: 8) {
                 SectionLabel("Model, before the snap")
-                FieldDiagramView(prediction: prediction, ydstogo: play.inputs.ydstogo)
-                    .padding(18)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                VStack(alignment: .leading, spacing: 10) {
+                    FieldDiagramView(prediction: prediction, ydstogo: play.inputs.ydstogo)
+                    if let prediction, let adjusted, abs(adjusted - prediction.pPass) >= 0.005 {
+                        Label("Adjusted by what it learned: \(Self.call(adjusted))", systemImage: "arrow.triangle.2.circlepath")
+                            .font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                    }
+                }
+                .padding(18)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             }
 
-            VStack(spacing: 8) {
-                SectionLabel("What actually happened")
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(Self.outcome(play)).font(.system(.title3, design: .rounded, weight: .bold))
-                    if let verdict = Self.verdict(prediction, play) {
-                        Text(verdict.text).font(.headline).foregroundStyle(verdict.hit ? .green : .red)
+            if shown {
+                VStack(spacing: 8) {
+                    SectionLabel("What actually happened")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(Self.outcome(play)).font(.system(.title3, design: .rounded, weight: .bold))
+                        if let prediction, let isPass = play.isPass {
+                            verdictLine(mode == .unseen ? "Base" : "Model", prediction.pPass, isPass)
+                            if let adjusted, mode == .unseen { verdictLine("Adjusted", adjusted, isPass) }
+                        }
+                        if let desc = play.desc { Text(desc).font(.callout).foregroundStyle(.secondary) }
                     }
-                    if let desc = play.desc { Text(desc).font(.callout).foregroundStyle(.secondary) }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                if mode != .training, let predictor, let prediction, let isPass = play.isPass {
+                    why(MissExplainer.factors(predictor: predictor, inputs: play.inputs),
+                        missed: (prediction.pPass >= 0.5) != isPass)
+                }
+            } else {
+                Button { reveal(play, prediction) } label: {
+                    Label("Reveal what happened", systemImage: "eye").frame(maxWidth: .infinity).onAccentLabel()
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(prediction == nil || play.isPass == nil)
             }
 
             HStack {
@@ -163,9 +230,49 @@ struct HistoryView: View {
         }
     }
 
-    private func badge(_ inTraining: Bool) -> some View {
-        Label(inTraining ? "In training data" : "Unseen by the model",
-              systemImage: inTraining ? "books.vertical" : "sparkles")
+    private func verdictLine(_ who: String, _ pPass: Double, _ isPass: Bool) -> some View {
+        let hit = (pPass >= 0.5) == isPass
+        return Text("\(hit ? "✓" : "✗") \(who) \(hit ? "called it" : "missed") (\(Self.call(pPass)))")
+            .font(.headline).foregroundStyle(hit ? .green : .red)
+    }
+
+    /// Top 4 factor groups as signed bars; positive pushes toward pass.
+    private func why(_ factors: [Factor], missed: Bool) -> some View {
+        let top = Array(factors.sorted { abs($0.delta) > abs($1.delta) }.prefix(4))
+        let biggest = max(top.map { abs($0.delta) }.max() ?? 0, 1e-9)
+        return VStack(spacing: 8) {
+            SectionLabel(missed ? "Why it missed" : "What drove the call")
+            VStack(alignment: .leading, spacing: 10) {
+                if top.isEmpty { Text("No single input stood out.").foregroundStyle(.secondary) }
+                ForEach(top) { f in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(f.name).font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text(Self.signedPct(f.delta)).font(.subheadline).monospacedDigit().foregroundStyle(.secondary)
+                        }
+                        GeometryReader { g in
+                            Capsule().fill(f.delta >= 0 ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                                .frame(width: max(4, g.size.width * abs(f.delta) / biggest))
+                        }
+                        .frame(height: 6)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+    }
+
+    private func badge(_ mode: Mode) -> some View {
+        let (text, icon) = switch mode {
+        case .training: ("In training data", "books.vertical")
+        case .learned: ("Learned from", "checkmark.seal")
+        case .unseen: ("Unseen by the model", "sparkles")
+        }
+        return Label(text, systemImage: icon)
             .font(.caption.weight(.semibold))
             .padding(.horizontal, 10).padding(.vertical, 4)
             .background(.tint.opacity(0.15), in: Capsule())
@@ -199,13 +306,18 @@ struct HistoryView: View {
         return ["Pass", detail ?? "no throw"].joined(separator: " · ")
     }
 
-    /// Run/pass call vs. reality; the percentage shown is the side the model picked.
-    static func verdict(_ pred: PlayPrediction?, _ p: HistoryPlay) -> (text: String, hit: Bool)? {
-        guard let pred, let isPass = p.isPass else { return nil }
-        let callsPass = pred.pPass >= 0.5
-        let pct = Int((max(pred.pPass, 1 - pred.pPass) * 100).rounded())
-        let call = "\(pct)% \(callsPass ? "pass" : "run")"
-        return callsPass == isPass ? ("✓ Model called it (\(call))", true) : ("✗ Model missed (\(call))", false)
+    /// "74% pass" / "68% run": the side the probability picks, with its share.
+    static func call(_ pPass: Double) -> String {
+        "\(Int((max(pPass, 1 - pPass) * 100).rounded()))% \(pPass >= 0.5 ? "pass" : "run")"
+    }
+
+    /// 0.7604 -> "76.0%"
+    static func pct1(_ v: Double) -> String { String(format: "%.1f%%", v * 100) }
+
+    /// 0.12 -> "+12% toward pass", -0.06 -> "−6%"
+    static func signedPct(_ d: Double) -> String {
+        let n = Int((abs(d) * 100).rounded())
+        return d >= 0 ? "+\(n)% toward pass" : "−\(n)%"
     }
 
     /// "8:42" -> 522; also "8" -> 480. Capped at a full quarter.
@@ -255,6 +367,17 @@ struct HistoryView: View {
         withAnimation(.snappy) {
             play = next
             notFound = next == nil
+            outcome = nil
+        }
+    }
+
+    /// Show what happened and learn from it, once. Only unseen, not-yet-learned plays get here.
+    private func reveal(_ play: HistoryPlay, _ prediction: PlayPrediction?) {
+        guard outcome == nil, let prediction, let isPass = play.isPass,
+              !learner.hasLearned(gameId: play.gameID, playId: play.playID) else { return }
+        withAnimation(.snappy) {
+            outcome = learner.learn(gameId: play.gameID, playId: play.playID, inputs: play.inputs,
+                                    base: prediction, wasPass: isPass)
         }
     }
 }

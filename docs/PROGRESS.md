@@ -36,12 +36,83 @@ gantt
 
     section App
     iOS app shell (SwiftUI + Core ML) :done, app, 2026-10-19, 1d
+    App v2 (redesign, camera, play lookup) :done, appv2, 2026-10-19, 1d
+    App v3 (guess, reveal, learn) :done, appv3, 2026-10-19, 1d
 
     section Tooling
     Agent team + Agent HQ dashboard :done, hq, 2026-10-17, 1d
     Round 2 agent team (Strategist + 6) :done, team2, 2026-10-17, 1d
     Agent playbook, logs, GitHub repo :done, repo, 2026-10-18, 1d
 ```
+
+---
+
+## 2026-10-19: App v3, a model that learns from you (round 6)
+
+### What was done
+The Play lookup tab became a game: **guess → reveal → learn**. The app makes its call on a real play from 2016–2025, you reveal what really happened, and a small **correction layer** on the phone learns from the answer. Full details are in [CHANGELOG.md](CHANGELOG.md) (v3.0) and [research/model_improvement.md](research/model_improvement.md) (section 6).
+- **The correction layer:** a 16-input logistic regression stacked on top of the frozen v3 tree model. It starts as an exact copy of the tree's answer and takes one small step after each reveal (learning rate 0.003).
+- **"Why it missed":** for each group of inputs, how far it pushed the call.
+- **Learning card:** base vs adjusted accuracy and log loss, plus a **Reset learning** button.
+
+**Does it help?** Modeler simulated it offline on the 69,201 plays from 2024–2025, which the trees never trained on:
+- **Over all of them:** log loss improves from 0.4707 to 0.4679 and accuracy from 77.16% to 77.31%.
+- **Over a typical session (the first 50 or 200 plays):** no measurable change.
+
+That's the honest result: a small long-run gain, no harm in short sessions.
+
+### Why it was needed
+You asked for an app that improves from your feedback. The simulation shows how much that can realistically do, and why: the trees already saw about 273,000 plays, and most misses are play-callers being deliberately unpredictable, not a pattern the model is missing.
+
+### Concepts worth understanding
+
+**1. Online learning and SGD.**
+- **Batch training** looks at every example at once.
+- **Online learning** updates after **each** example. Stochastic gradient descent (SGD) takes one small step downhill on that single example's error: `w ← w − lr · (p − y) · x`. Here `p` is the model's probability, `y` is the true answer (1 = pass), and `x` holds the inputs.
+
+Example (made-up numbers): say the model said 80% pass, and it was a run. The error is `p − y = 0.8 − 0 = 0.8`, so every weight attached to an input that was "on" for that play moves a little toward "run". The **learning rate** sets the step size:
+- With lr = 0.1, a 50-play session got *worse* (accuracy 77.4% → 75.7%). A few surprising plays yanked the model around.
+- At 0.003 the steps are small enough that noise mostly cancels out. (ECE parallel: an LMS adaptive filter. Too large a step size and it goes unstable.)
+
+**2. Prequential evaluation: grade before you learn.**
+For each play, the app records its guess **before** it sees the answer, scores that guess, and only then learns from it. If it learned first and scored after, it would be grading itself on a question it had just seen the answer to, like checking a test against the answer key you just read. That's why the Learning card says "Each guess is scored before it learns, so the numbers stay honest."
+
+**3. Why the trees stay frozen and only the logistic layer learns.**
+A boosted-tree model is hundreds of trees. Each split was chosen using the whole training set, and each tree corrects the ones before it. One new play can't shift a split threshold without rebuilding everything downstream. There's no small, smooth "nudge" for a tree. Logistic regression is a single formula with 16 weights, and its error changes smoothly as the weights change, so one gradient step is cheap and safe. So the trees provide the knowledge from about 273k plays, and the thin layer on top adapts.
+
+**4. Counterfactual "why" factors.**
+To explain a call, the app asks "what if I hadn't known this?" It predicts once with everything, then again with one group blanked, for example Formation. The difference is that group's push. Example (made-up numbers): say it gives 82% pass with everything known and 64% with the formation blanked. Then "Formation" pushed the call 18 points toward pass. Groups are sorted by size. This works because v3 was trained with dropout, so "blank" is an input it understands rather than nonsense. If it missed, the card is titled "Why it missed". If it was right, "What drove the call".
+
+### Honest limitations
+- The gain is tiny (−0.003 log loss over 69k plays). This is not a path to a much better model. See "What would actually help next" in model_improvement.md.
+- Learning lives on one phone and isn't backed up. Reset erases it.
+
+---
+
+## 2026-10-19: App v2, redesign, camera and play lookup (round 5)
+
+### What was done
+See [CHANGELOG.md](CHANGELOG.md) (v2.0) for the full list. The highlights:
+- **Apple Sports-style redesign:** a field diagram, your favorite accent color across all text, and a light / dark / system setting inside the app.
+- **Camera tab:** Live, Record or Upload, with **YOLO player boxes drawn on the phone**. The small yolo26n model was converted to Core ML (4.8 MB).
+- **Play lookup tab:** browse any of 342,499 plays from 2016–2025 and see what the model would have called. The plays live in an on-device SQLite database (55 MB, built by `scripts/build_history_db.py`, kept out of git).
+- **Defense inputs:** personnel presets and box count.
+- **Checkmark bug fixed**, with a UI test so it stays fixed.
+- numpy pinned to ≤2.3.5 so coremltools works.
+
+### Why it was needed
+The v1 shell proved the model runs on a phone. v2 makes it something you'd actually open: real plays to explore, the camera running detection on the device, and a design that's pleasant to use.
+
+### How it fits
+The camera boxes are the first time the **vision** half runs on the phone. They don't feed the predictor yet: formation still comes from the input panel. Play lookup reuses the same `PlayPredictor` as the input panel, fed from database rows instead of taps.
+
+### Concepts worth understanding
+
+**1. An on-device database.**
+SQLite is a whole database in a single file, with no server. You pick season → team → week → game → quarter and clock, and an index on (game, quarter, clock) finds the play among 342,499 almost instantly. It's like a book's index: you jump straight to the page instead of reading every page. It all runs on the phone and works offline.
+
+**2. Regression tests for UI bugs.**
+A UI test drives the app the way a finger would (tap this, check that the checkmark appears). Once a bug is fixed, the test fails if it ever comes back. It's the same idea as `test_build_dataset_filters_and_no_leaks` in Python.
 
 ---
 

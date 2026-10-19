@@ -1,0 +1,41 @@
+{
+  "features": [
+    "bias",
+    "base_logit",
+    "down_1",
+    "down_2",
+    "down_3",
+    "down_4",
+    "ytg",
+    "ytg_known",
+    "field",
+    "form_shotgun",
+    "form_under_center",
+    "form_pistol",
+    "empty",
+    "box",
+    "score",
+    "late"
+  ],
+  "w0": [
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "lr": 0.003,
+  "l2": 0.0,
+  "clip_logit": 8.0
+}
