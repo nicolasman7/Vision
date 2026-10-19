@@ -23,6 +23,14 @@ targets:
       - path: ../coreml/depth.mlmodel
       - path: ../coreml/predictor_schema.json
         buildPhase: resources
+      # Written by Spotter. The include glob is resolved at `xcodegen generate` time, so
+      # before the package exists nothing is added and the build still works
+      # (`optional: true` alone isn't enough: xcodebuild fails on a missing input).
+      # Re-run xcodegen once it appears. Compiled to yolo_detector.mlmodelc.
+      - path: ../coreml
+        includes:
+          - yolo_detector.mlpackage
+          - history.sqlite   # Data Wrangler's play history; same trick, copied as a resource
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nicolasmansour.vision
@@ -31,11 +39,16 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_CFBundleDisplayName: Vision
+        INFOPLIST_KEY_NSCameraUsageDescription: Vision uses the camera to watch the play and spot players.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Vision records sound when you record a video of the play.
+        INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Vision imports clips from your photo library to analyze them.
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: Vision saves your recordings to your photo library.
         MARKETING_VERSION: "0.1"
         CURRENT_PROJECT_VERSION: "1"
     scheme:
       testTargets:
         - VisionTests
+        - VisionUITests
   VisionTests:
     type: bundle.unit-test
     platform: iOS
@@ -48,3 +61,16 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nicolasmansour.vision.tests
         GENERATE_INFOPLIST_FILE: YES
+  VisionUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: VisionUITests
+        optional: true
+    dependencies:
+      - target: Vision
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nicolasmansour.vision.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Vision

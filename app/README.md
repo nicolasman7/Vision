@@ -33,6 +33,12 @@ xcodebuild -project Vision.xcodeproj -scheme Vision -destination 'generic/platfo
 - **VS Code:** install the **SweetPad** extension and the **Swift** extension, open the `app/` folder,
   then use SweetPad's "Build & Run" with the `Vision` scheme and a simulator. No previews here.
 
+**Camera:** the Simulator has no camera, so test the Live tab on a real phone. Importing clips from
+Photos does work in the Simulator (drag a video onto it to add it to Photos).
+
+The YOLO detector (`coreml/yolo_detector.mlpackage`) is bundled only if it existed when you last ran
+`xcodegen generate`, so regenerate after exporting it.
+
 ## Run on a real iPhone
 
 1. `open Vision.xcodeproj`, select the Vision target, open Signing & Capabilities, and pick a Team.

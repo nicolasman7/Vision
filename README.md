@@ -64,7 +64,7 @@ The full learning log, with every experiment explained, is in [docs/PROGRESS.md]
 
 ## How it was built
 
-A lead Claude agent coordinated a team of specialized subagents, each with one narrow job: a data wrangler, a modeler, a field surveyor, a film scout, a teacher who writes the docs, and others. They reported their status to a game-style live dashboard (`tools/agent-hq/`). The playbook is in [AGENT_TEAM.md](AGENT_TEAM.md). Every session is written up in plain English in [docs/PROGRESS.md](docs/PROGRESS.md).
+The project is built with an agentic AI harness: a lead orchestrator agent coordinates a team of specialized AI subagents, each with one narrow job: a data wrangler, a modeler, a field surveyor, a film scout, a teacher who writes the docs, and others. They reported their status to a game-style live dashboard (`tools/agent-hq/`). The playbook is in [AGENT_TEAM.md](AGENT_TEAM.md). Every session is written up in plain English in [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Roadmap
 

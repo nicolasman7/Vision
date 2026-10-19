@@ -3,3 +3,88 @@
 {"time": "2026-10-19T00:41:14-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "done", "task": "Round 4 app entry written", "updated": 1792384874.1286342}
 {"time": "2026-10-19T00:41:14-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "On the bench: ready for docs jobs", "updated": 1792384874.208231}
 {"time": "2026-10-19T00:42:38-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: round 4 ready to commit", "updated": 1792384958.716522}
+{"time": "2026-10-19T00:53:58-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 5: app v2 (Apple Sports style + camera)", "updated": 1792385638.771894}
+{"time": "2026-10-19T00:53:58-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Getting briefed: v2 redesign", "updated": 1792385638.795952}
+{"time": "2026-10-19T00:53:58-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Getting briefed: camera + live detection", "updated": 1792385638.819829}
+{"time": "2026-10-19T00:53:58-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Getting briefed: YOLO to Core ML", "updated": 1792385638.8461928}
+{"time": "2026-10-19T00:53:58-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Getting briefed: tabs + permissions", "updated": 1792385638.87441}
+{"time": "2026-10-19T00:53:58-0400", "id": "teacher", "name": "Teacher", "role": "Docs", "state": "idle", "task": "Waiting for v2", "updated": 1792385638.907128}
+{"time": "2026-10-19T00:54:02-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Writing YOLO Core ML export script", "updated": 1792385642.255518}
+{"time": "2026-10-19T00:54:02-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "v2: tabs, camera perms, YOLO resource", "updated": 1792385642.373868}
+{"time": "2026-10-19T00:54:02-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Reading the app layout", "updated": 1792385642.461091}
+{"time": "2026-10-19T00:54:03-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "v2 redesign: reading app + stubs", "updated": 1792385643.589511}
+{"time": "2026-10-19T00:54:21-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Adding stubs for missing types, building", "updated": 1792385661.032128}
+{"time": "2026-10-19T00:54:22-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "working", "task": "Exporting yolo26n to Core ML (nms, fp16)", "updated": 1792385662.888302}
+{"time": "2026-10-19T00:54:51-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "blocked", "task": "Core ML export: numpy 2.5 too new for coremltools", "updated": 1792385691.817327}
+{"time": "2026-10-19T00:54:53-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "done", "task": "v2 shell: 3 tabs + onboarding, build OK", "updated": 1792385693.31584}
+{"time": "2026-10-19T00:54:53-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792385693.344529}
+{"time": "2026-10-19T00:55:25-0400", "id": "spotter", "name": "Spotter", "role": "Vision", "state": "idle", "task": "On the bench: YOLO Core ML exported (Coach fixed numpy)", "updated": 1792385725.0349262}
+{"time": "2026-10-19T00:56:01-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Writing PlayerDetector (Vision + Core ML)", "updated": 1792385761.276253}
+{"time": "2026-10-19T00:56:17-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Writing CameraModel (capture + recording)", "updated": 1792385777.696206}
+{"time": "2026-10-19T00:56:43-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Writing ClipModel (upload + 5 fps detection)", "updated": 1792385803.5211709}
+{"time": "2026-10-19T00:57:01-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Writing LiveView (modes, overlay, permissions)", "updated": 1792385821.0352268}
+{"time": "2026-10-19T00:57:08-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Field diagram + theme written, compiling", "updated": 1792385828.007034}
+{"time": "2026-10-19T00:57:24-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "UI compiles; waiting on Lens build fix", "updated": 1792385844.5929742}
+{"time": "2026-10-19T00:57:35-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Building for the iOS Simulator", "updated": 1792385855.7572181}
+{"time": "2026-10-19T00:58:02-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Module 'Vision' clashes with Apple Vision; using CoreML", "updated": 1792385882.9388092}
+{"time": "2026-10-19T00:58:49-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Build OK; checking detector on a real frame", "updated": 1792385929.484643}
+{"time": "2026-10-19T00:58:55-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "done", "task": "v2 look: field diagram + theme, build green", "updated": 1792385935.9479449}
+{"time": "2026-10-19T00:58:55-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792385935.975029}
+{"time": "2026-10-19T01:00:05-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Boxes match Ultralytics; rebuilding app", "updated": 1792386005.49197}
+{"time": "2026-10-19T01:00:47-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "done", "task": "Live tab: camera, record, upload + player boxes", "updated": 1792386047.366559}
+{"time": "2026-10-19T01:00:47-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "idle", "task": "On the bench: ready for camera/vision jobs", "updated": 1792386047.3964758}
+{"time": "2026-10-19T01:01:10-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Reviewing v2: tests + Simulator run", "updated": 1792386070.859628}
+{"time": "2026-10-19T01:01:43-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "idle", "task": "On the bench: ready for camera/vision jobs", "updated": 1792386103.240586}
+{"time": "2026-10-19T01:01:43-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792386103.2680151}
+{"time": "2026-10-19T01:01:43-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: v2 reviewed, awaiting user", "updated": 1792386103.2941282}
+{"time": "2026-10-19T01:16:10-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Fixes: appearance toggle, checkmark, accent text", "updated": 1792386970.973129}
+{"time": "2026-10-19T01:16:10-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Fix: Live tab follows light/dark + accent", "updated": 1792386970.998681}
+{"time": "2026-10-19T01:16:11-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "v2 fixes round: Game Dev + Lens", "updated": 1792386971.023115}
+{"time": "2026-10-19T01:16:14-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Live tab: follow app appearance + accent", "updated": 1792386974.738857}
+{"time": "2026-10-19T01:16:16-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "v2 fixes: checkmark bug, appearance, accent text", "updated": 1792386976.855658}
+{"time": "2026-10-19T01:17:06-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "done", "task": "Live tab follows app appearance + accent", "updated": 1792387026.9492228}
+{"time": "2026-10-19T01:17:06-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "idle", "task": "On the bench: ready for camera/vision jobs", "updated": 1792387026.974993}
+{"time": "2026-10-19T01:18:31-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Building v2 fixes", "updated": 1792387111.1017559}
+{"time": "2026-10-19T01:18:42-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "done", "task": "Appearance, checkmark fix, accent text", "updated": 1792387122.08681}
+{"time": "2026-10-19T01:18:42-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792387122.115492}
+{"time": "2026-10-19T01:20:05-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Fix: button text on accent fills", "updated": 1792387205.49284}
+{"time": "2026-10-19T01:20:19-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Fixing labels on accent fills + UIKit accent", "updated": 1792387219.625799}
+{"time": "2026-10-19T01:21:00-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "done", "task": "Contrast labels + UIKit accent, build green", "updated": 1792387260.845591}
+{"time": "2026-10-19T01:21:00-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792387260.8728168}
+{"time": "2026-10-19T01:21:11-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Fix: button text on accent fills", "updated": 1792387271.297129}
+{"time": "2026-10-19T01:21:11-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792387271.330234}
+{"time": "2026-10-19T01:21:14-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "working", "task": "Fixing invisible prominent button labels", "updated": 1792387274.453148}
+{"time": "2026-10-19T01:21:25-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "idle", "task": "On the bench: ready for camera/vision jobs", "updated": 1792387285.907808}
+{"time": "2026-10-19T01:21:36-0400", "id": "lens", "name": "Lens", "role": "Vision", "state": "idle", "task": "On the bench: ready for camera/vision jobs", "updated": 1792387296.3783062}
+{"time": "2026-10-19T01:26:44-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Checkmark root cause + defense inputs", "updated": 1792387604.272304}
+{"time": "2026-10-19T01:26:44-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Adding UI test target", "updated": 1792387604.300108}
+{"time": "2026-10-19T01:26:49-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Adding VisionUITests target", "updated": 1792387609.522974}
+{"time": "2026-10-19T01:26:57-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Hunting the checkmark root cause", "updated": 1792387617.327011}
+{"time": "2026-10-19T01:26:59-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "done", "task": "VisionUITests target added, test build OK", "updated": 1792387619.1547892}
+{"time": "2026-10-19T01:26:59-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792387619.184958}
+{"time": "2026-10-19T01:30:05-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "working", "task": "Building play-history SQLite", "updated": 1792387805.1704059}
+{"time": "2026-10-19T01:30:05-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Getting briefed: Play lookup", "updated": 1792387805.200135}
+{"time": "2026-10-19T01:30:05-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Adding History tab", "updated": 1792387805.227653}
+{"time": "2026-10-19T01:30:05-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Round 5b: checkmark, defense, Play lookup", "updated": 1792387805.25345}
+{"time": "2026-10-19T01:30:05-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "working", "task": "Checkmark fixed + UI test green; adding defense", "updated": 1792387805.6301959}
+{"time": "2026-10-19T01:30:08-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Reading predictor + UI code", "updated": 1792387808.3579688}
+{"time": "2026-10-19T01:30:08-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "working", "task": "History DB: reading predictor inputs", "updated": 1792387808.7831051}
+{"time": "2026-10-19T01:30:09-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "working", "task": "Adding History tab + history.sqlite", "updated": 1792387809.835412}
+{"time": "2026-10-19T01:30:23-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "done", "task": "History tab + history.sqlite hook, build OK", "updated": 1792387823.304589}
+{"time": "2026-10-19T01:30:23-0400", "id": "architect", "name": "App Architect", "role": "UI", "state": "idle", "task": "On the bench: ready for iOS project jobs", "updated": 1792387823.331927}
+{"time": "2026-10-19T01:31:02-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Writing HistoryStore (SQLite3)", "updated": 1792387862.3059862}
+{"time": "2026-10-19T01:31:03-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "done", "task": "Checkmark root-caused + UI test; defense inputs", "updated": 1792387863.669523}
+{"time": "2026-10-19T01:31:03-0400", "id": "gamedev", "name": "Game Dev", "role": "UI", "state": "idle", "task": "On the bench: ready for UI jobs", "updated": 1792387863.701396}
+{"time": "2026-10-19T01:31:07-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "working", "task": "Building history.sqlite (342k plays)", "updated": 1792387867.9062972}
+{"time": "2026-10-19T01:31:21-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "working", "task": "DB is 75 MB; measuring what takes space", "updated": 1792387881.9848928}
+{"time": "2026-10-19T01:31:35-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Building HistoryView (pickers + card)", "updated": 1792387895.130877}
+{"time": "2026-10-19T01:31:46-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "working", "task": "Rebuilding DB without pre-2022 desc", "updated": 1792387906.1501482}
+{"time": "2026-10-19T01:32:00-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "done", "task": "history.sqlite: 342,499 plays, 54.6 MB", "updated": 1792387920.060998}
+{"time": "2026-10-19T01:32:00-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "idle", "task": "On the bench: ready for data jobs", "updated": 1792387920.0849762}
+{"time": "2026-10-19T01:32:35-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "working", "task": "Generating project + running tests", "updated": 1792387955.438089}
+{"time": "2026-10-19T01:33:09-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "done", "task": "Play lookup built; 3 history tests pass", "updated": 1792387989.992913}
+{"time": "2026-10-19T01:33:10-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "idle", "task": "On the bench: ready for history/data jobs", "updated": 1792387990.02266}
+{"time": "2026-10-19T01:33:23-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "working", "task": "Final review: all app + Python tests", "updated": 1792388003.009038}
+{"time": "2026-10-19T01:34:12-0400", "id": "historian", "name": "Historian", "role": "Data", "state": "idle", "task": "On the bench: ready for history/data jobs", "updated": 1792388052.72666}
+{"time": "2026-10-19T01:34:12-0400", "id": "wrangler", "name": "Data Wrangler", "role": "Data", "state": "idle", "task": "On the bench: ready for data jobs", "updated": 1792388052.754774}
+{"time": "2026-10-19T01:34:12-0400", "id": "lead", "name": "Coach", "role": "Lead", "state": "idle", "task": "On the bench: v2 ready, awaiting user OK", "updated": 1792388052.780374}
